@@ -21,7 +21,7 @@ env/
 Thumbs.db
 
 # Others
-.ppt
-.pptx
-.pdf
-.zip
+*.ppt
+*.pptx
+*.pdf
+*.zip
