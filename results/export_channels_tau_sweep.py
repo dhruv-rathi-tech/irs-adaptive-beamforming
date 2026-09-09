@@ -22,13 +22,15 @@ from simulation.multi_phase_estimation import multi_phase_pilot_estimate_C
 
 TAU_SWEEP = [8, 16, 32, 64]        # pilot length per phase; must be >= N=8 (BS antennas)
 FIXED_NOISE_DBM = -85.0            # fixed pilot+data noise floor for a fair sweep
+T_COHERENCE_OVERRIDE = 5000        # realistic coherence block (symbols) so tau_total/T stays in (0,1)
+                                    # for all tau in TAU_SWEEP (max tau_total = 64*64 = 4096 < 5000)
 SEED = SystemConfig().seed
 
 out_dir = os.path.join(os.path.dirname(__file__), "tau_sweep")  # results/tau_sweep
 os.makedirs(out_dir, exist_ok=True)
 
 for tau in TAU_SWEEP:
-    cfg = replace(SystemConfig(), tau=tau)
+    cfg = replace(SystemConfig(), tau=tau, T_coherence=T_COHERENCE_OVERRIDE)
     rng = np.random.default_rng(SEED)
     G = generate_bs_irs_channel(cfg, rng)
     H, _ = generate_irs_user_channels(cfg, rng)
