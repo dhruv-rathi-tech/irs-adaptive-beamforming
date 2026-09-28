@@ -1,4 +1,4 @@
-function [ Sum_Rate, P, Theta ] = Opt_func_Ck( M,N,K,P_max,sigma,C_hat )
+function [ Sum_Rate, P, Theta, iter ] = Opt_func_Ck( M,N,K,P_max,sigma,C_hat, theta_init, max_iters )
 % Opt_func_Ck: Alternating Optimization using the CASCADED channel
 %   C_hat{k} = diag(conj(h_k)) * G   in C^{M x N},  k = 1..K
 % instead of separate H, G. This is algebraically identical to the
@@ -12,10 +12,19 @@ function [ Sum_Rate, P, Theta ] = Opt_func_Ck( M,N,K,P_max,sigma,C_hat )
 % Inputs:
 %   C_hat : 1xK cell array, each C_hat{k} is (M,N) complex -- estimated (or
 %           exact, for verification) cascaded channel per user.
-% Outputs: identical meaning/shape to Opt_func.m (Sum_Rate, P, Theta).
+%   theta_init (optional): Mx1 complex phase vector for warm-start.
+%   max_iters  (optional): maximum allowed AO iterations (default: Inf).
+% Outputs: identical meaning/shape to Opt_func.m (Sum_Rate, P, Theta, iter).
 
 %% init
-Phi = diag(exp(1j*(rand(M, 1)*2*pi))); % phase shifters
+if nargin < 7 || isempty(theta_init)
+    Phi = diag(exp(1j*(rand(M, 1)*2*pi))); % phase shifters
+else
+    Phi = diag(theta_init(:));
+end
+if nargin < 8 || isempty(max_iters)
+    max_iters = Inf;
+end
 theta_vec = diag(Phi);                  % (M,1)
 
 H_all = compute_H_all(theta_vec, C_hat, K, N);
@@ -130,6 +139,10 @@ theta_vec = diag(Phi);
 H_all = compute_H_all(theta_vec, C_hat, K, N);
 
 %% if converge
+if iter >= max_iters
+    Sum_Rate = SumRate(end);
+    break;
+end
 if iter >= 3
     diff = SumRate(iter) - SumRate(iter-1);
     if abs(diff)/SumRate(iter) <= 1e-2

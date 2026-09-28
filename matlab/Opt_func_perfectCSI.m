@@ -12,12 +12,12 @@ P = P/norm(P,'fro');
 SumRate = [];
 iter = 0;
 
-disp('any NaN in H:'); disp(any(isnan(H(:))));
-disp('any NaN in G:'); disp(any(isnan(G(:))));
-disp('any NaN in H_all:'); disp(any(isnan(H_all(:))));
-disp('any NaN in P:'); disp(any(isnan(P(:))));
-disp('rank of H_all*H_all_H:'); disp(rank(H_all*H_all'));
-disp('size H_all:'); disp(size(H_all));
+% disp('any NaN in H:'); disp(any(isnan(H(:))));
+% disp('any NaN in G:'); disp(any(isnan(G(:))));
+% disp('any NaN in H_all:'); disp(any(isnan(H_all(:))));
+% disp('any NaN in P:'); disp(any(isnan(P(:))));
+% disp('rank of H_all*H_all_H:'); disp(rank(H_all*H_all'));
+% disp('size H_all:'); disp(size(H_all));
 %% Iterations UPDATE
 while(1)
 iter = iter+1;
@@ -109,13 +109,13 @@ for k=1:K
     %C = C + abs(rho(k))^2*sigma;
 end
 
-disp('Alpha:'); disp(Alpha');
-disp('Beta:'); disp(Beta');
-disp('rho:'); disp(rho');
+% disp('Alpha:'); disp(Alpha');
+% disp('Beta:'); disp(Beta');
+% disp('rho:'); disp(rho');
 A = (A+A')/2;
-disp(class(A)); disp(size(A)); disp(any(isnan(A(:)))); disp(any(isinf(A(:))));
-disp(class(b)); disp(size(b)); disp(any(isnan(b))); disp(any(isinf(b)));
-disp(isreal(A)); disp(isreal(b));
+% disp(class(A)); disp(size(A)); disp(any(isnan(A(:)))); disp(any(isinf(A(:))));
+% disp(class(b)); disp(size(b)); disp(any(isnan(b))); disp(any(isinf(b)));
+% disp(isreal(A)); disp(isreal(b));
 cvx_begin sdp quiet
     variable f_SDP
     variable zeta(M)

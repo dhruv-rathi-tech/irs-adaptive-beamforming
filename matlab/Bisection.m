@@ -11,7 +11,7 @@ y2 = feval(f, high);
 % immediately instead of looping forever (original fallback below only
 % handled y1<0 by shrinking low, with no corresponding fix when y2<0 too).
 if y1 < 0 && y2 < 0
-    disp('power(dual_v) < 0 at both ends -- constraint not binding, returning m = low.');
+    % disp('power(dual_v) < 0 at both ends -- constraint not binding, returning m = low.');
     m = low;
     return;
 end
