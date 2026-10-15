@@ -236,6 +236,65 @@ All plots will be updated in the `results/` folder:
 
 ---
 
+## Review-III Research Extensions (Completed)
+
+### 1. Phase 5 — 1-bit & 2-bit Quantization-Aware Beamforming (Task 1)
+Addresses hardware non-idealities by constraining IRS phase shifts to discrete phase alphabets:
+* **1-bit IRS:** $\{+1, -1\}$ (phase choices $\{0, \pi\}$).
+* **2-bit IRS:** $\{+1, +j, -1, -j\}$ (phase choices $\{0, \pi/2, \pi, 3\pi/2\}$).
+* **Quantization-Aware Training (QAT):** Implemented via a differentiable Straight-Through Estimator (STE) in `gnn/quantization.py`.
+* **Results (500 Held-Out Realizations, Seeds 200,000–200,499):**
+  - **Continuous Baseline:** **21.39 bps/Hz**
+  - **2-bit QAT:** **21.28 bps/Hz** (Retains **99.5%** of continuous performance, with only a $-0.11\text{ bps/Hz}$ degradation).
+  - **2-bit PTQ:** **21.16 bps/Hz** (QAT recovers $+0.12\text{ bps/Hz}$ over post-training quantization).
+  - **1-bit QAT:** **20.46 bps/Hz** (Retains **95.6%** of continuous performance with binary phase shifters).
+  - **1-bit PTQ:** **20.45 bps/Hz**
+  - **Inference Latency:** $\approx 1.94\text{--}2.05\text{ ms}$ on CPU.
+
+Reproduce:
+```bash
+python -m gnn.train_quantization --bits 1 --epochs 35
+python -m gnn.train_quantization --bits 2 --epochs 35
+python -m results.evaluate_phase5_quantization
+```
+
+### 2. Robustness Across Varied Fading Environments (Task 2)
+Evaluated across 5 physical propagation regimes:
+* Default ($K_{\text{rice}}=10, \alpha=2.2$): Zero-Shot = **21.70 bps/Hz** | Retrained = **21.88 bps/Hz**
+* Weak LOS ($K_{\text{rice}}=2.0, \alpha=2.2$): Zero-Shot = **20.58 bps/Hz** | Retrained = 17.81 bps/Hz
+* Pure Rayleigh ($K_{\text{rice}}=0.0$, complete LOS blockage): Zero-Shot = **17.22 bps/Hz** (vs 1.87 bps/Hz baseline)
+* Strong LOS ($K_{\text{rice}}=20.0, \alpha=2.0$): Zero-Shot = **23.11 bps/Hz** | Retrained = **23.59 bps/Hz**
+* High Path Loss ($\alpha=2.8$): Zero-Shot = **17.00 bps/Hz** | Retrained = **17.21 bps/Hz**
+* **Finding:** Zero-shot transfer delivers **17.00 to 23.11 bps/Hz**, outperforming the baseline by 8× to 11× without retraining.
+
+Reproduce:
+```bash
+python -m gnn.train_and_eval_robustness
+```
+
+### 3. Dimension Generalization Across N, M, K (Task 3)
+* **IRS Elements Scaling ($M \in \{32, 64, 128\}$):** Permutation-equivariant ElementBlocks allow zero-shot transfer across surface dimensions ($M=32$: 19.36 bps/Hz, $M=64$: 21.46 bps/Hz, $M=128$: 23.87 bps/Hz), matching retrained performance.
+* **BS Antenna Scaling ($N \in \{4, 8, 16\}$):** Precoders scale from 21.34 bps/Hz ($N=4$, 5.33 bps/Hz/ant) to 22.37 bps/Hz ($N=8$, 2.80 bps/Hz/ant) and 22.30 bps/Hz ($N=16$, 1.39 bps/Hz/ant).
+* **User Load Scaling ($K \in \{2, 4, 8\}$):** Total sum-rate remains constant around $\approx 21.8\text{--}22.0\text{ bps/Hz}$ under total power constraint $P_{\max}=10\text{ W}$, with per-user spectral efficiency dividing equitably ($10.95 \to 5.50 \to 2.72\text{ bps/Hz/user}$).
+
+Reproduce:
+```bash
+python -m gnn.train_and_eval_generalization
+```
+
+### 4. Controlled Noise-Floor Input Feature Ablation (Task 4)
+* **Noise-Aware Model:** **21.39 bps/Hz**
+* **Ablated Model (Noise Feature Removed):** **21.42 bps/Hz**
+* **Net Difference:** $-0.03\text{ bps/Hz}$ ($-0.14\%$), $p_{\text{paired-}t} = 0.5818$, Wilcoxon $p = 0.7446$, 95% CI = $[-0.13, +0.07]\text{ bps/Hz}$.
+* **Rigorous Conclusion:** Statistically indistinguishable. $\hat{C}_{\text{LS}}$ already implicitly carries noise variance through estimation residuals, rendering an external scalar noise-floor input redundant.
+
+Reproduce:
+```bash
+python -m gnn.train_and_eval_noise_ablation
+```
+
+---
+
 ## Citation & Contact
 
 If you utilize this framework, codebase, or results in your research, please cite:

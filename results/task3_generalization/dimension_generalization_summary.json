@@ -1,0 +1,74 @@
+{
+  "M_scaling": [
+    {
+      "M": 32,
+      "zero_shot_sum_rate": 19.357036697864533,
+      "retrained_sum_rate": 19.31863065958023,
+      "random_rzf_sum_rate": 1.9481269121170044,
+      "per_user_rate": 4.829657664895057,
+      "per_antenna_rate": 2.4148288324475287
+    },
+    {
+      "M": 64,
+      "zero_shot_sum_rate": 21.45548286437988,
+      "retrained_sum_rate": 21.45548286437988,
+      "random_rzf_sum_rate": 2.1531203757971524,
+      "per_user_rate": 5.36387071609497,
+      "per_antenna_rate": 2.681935358047485
+    },
+    {
+      "M": 128,
+      "zero_shot_sum_rate": 23.87084593772888,
+      "retrained_sum_rate": 23.303585588932037,
+      "random_rzf_sum_rate": 2.0222538851201532,
+      "per_user_rate": 5.825896397233009,
+      "per_antenna_rate": 2.9129481986165047
+    }
+  ],
+  "N_scaling": [
+    {
+      "N": 4,
+      "retrained_sum_rate": 21.338599741458893,
+      "random_rzf_sum_rate": 1.7627017386257648,
+      "per_user_rate": 5.334649935364723,
+      "per_antenna_rate": 5.334649935364723
+    },
+    {
+      "N": 8,
+      "retrained_sum_rate": 22.3689635515213,
+      "random_rzf_sum_rate": 2.0157402686774732,
+      "per_user_rate": 5.592240887880325,
+      "per_antenna_rate": 2.7961204439401626
+    },
+    {
+      "N": 16,
+      "retrained_sum_rate": 22.29819836616516,
+      "random_rzf_sum_rate": 2.0715890057384967,
+      "per_user_rate": 5.57454959154129,
+      "per_antenna_rate": 1.3936373978853225
+    }
+  ],
+  "K_scaling": [
+    {
+      "K": 2,
+      "retrained_sum_rate": 21.90579433441162,
+      "random_rzf_sum_rate": 3.5509250447154046,
+      "per_user_rate": 10.95289716720581,
+      "per_antenna_rate": 2.7382242918014525
+    },
+    {
+      "K": 4,
+      "retrained_sum_rate": 22.01081911325455,
+      "random_rzf_sum_rate": 2.154080852866173,
+      "per_user_rate": 5.502704778313637,
+      "per_antenna_rate": 2.7513523891568186
+    },
+    {
+      "K": 8,
+      "retrained_sum_rate": 21.759976971149445,
+      "random_rzf_sum_rate": 1.6127740800380708,
+      "per_user_rate": 2.7199971213936807,
+      "per_antenna_rate": 2.7199971213936807
+    }
+  ]
+}

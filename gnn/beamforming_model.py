@@ -22,6 +22,9 @@ import torch.nn.functional as F
 import numpy as np
 
 
+from gnn.quantization import quantize_phase_ste
+
+
 class ElementBlock(nn.Module):
     """
     Message-passing block across the M=64 IRS elements.
@@ -43,17 +46,20 @@ class ElementBlock(nn.Module):
 
 
 class DeepBeamformingNet(nn.Module):
-    def __init__(self, M: int = 64, N: int = 8, K: int = 4, hidden_dim: int = 128, n_blocks: int = 3):
+    def __init__(self, M: int = 64, N: int = 8, K: int = 4, hidden_dim: int = 128, n_blocks: int = 3,
+                 quant_bits: int | None = None, use_noise_floor: bool = True):
         super().__init__()
         self.M = M
         self.N = N
         self.K = K
         self.hidden_dim = hidden_dim
+        self.quant_bits = quant_bits
+        self.use_noise_floor = use_noise_floor
 
         # Input feature dimension per IRS element m:
-        # Re and Im of C_hat[k, m, n] for all k in 1..K, n in 1..N: 2 * K * N = 64
-        # Plus per-element power (1) + noise level (1) = 66
-        in_dim = 2 * K * N + 2
+        # Re and Im of C_hat[k, m, n] for all k in 1..K, n in 1..N: 2 * K * N
+        # Plus per-element power (1) + optional noise level (1)
+        in_dim = 2 * K * N + (2 if use_noise_floor else 1)
 
         self.encoder = nn.Sequential(
             nn.Linear(in_dim, hidden_dim),
@@ -78,31 +84,35 @@ class DeepBeamformingNet(nn.Module):
             nn.Linear(64, K + 1),
         )
 
-    def forward_phase(self, c_hat_ls: torch.Tensor, noise_dbm: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward_phase(self, c_hat_ls: torch.Tensor, noise_dbm: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         c_hat_ls: (B, K, M, N) complex64
-        noise_dbm: (B,) or (B, 1) float32
+        noise_dbm: (B,) or (B, 1) float32 (optional if use_noise_floor=False)
         Returns:
           theta_ml: (B, M) complex64, unit modulus
           p_alloc:  (B, K) float32, sum(p) == 1
           alpha:    (B, 1) float32, regularization > 0
         """
-        B = c_hat_ls.shape[0]
-        if noise_dbm.ndim == 1:
-            noise_dbm = noise_dbm.unsqueeze(1)  # (B, 1)
+        B, K, M, N = c_hat_ls.shape
 
         # Normalize C_hat entries to O(1) using standard scale 1e-5
         c_scaled = c_hat_ls / 1e-5
 
         # Reshape to (B, M, 2*K*N): per element m, gather all k, n
-        c_perm = c_scaled.permute(0, 2, 1, 3).reshape(B, self.M, self.K * self.N)
+        c_perm = c_scaled.permute(0, 2, 1, 3).reshape(B, M, K * N)
         re_part = c_perm.real
         im_part = c_perm.imag
         elem_power = (re_part ** 2 + im_part ** 2).mean(dim=-1, keepdim=True)
 
-        noise_norm = ((noise_dbm + 85.0) / 15.0).unsqueeze(1).expand(B, self.M, 1)
-
-        node_feats = torch.cat([re_part, im_part, elem_power, noise_norm], dim=-1)  # (B, M, in_dim)
+        if self.use_noise_floor:
+            if noise_dbm is None:
+                noise_dbm = torch.full((B, 1), -85.0, device=c_hat_ls.device, dtype=torch.float32)
+            elif noise_dbm.ndim == 1:
+                noise_dbm = noise_dbm.unsqueeze(1)  # (B, 1)
+            noise_norm = ((noise_dbm + 85.0) / 15.0).unsqueeze(1).expand(B, M, 1)
+            node_feats = torch.cat([re_part, im_part, elem_power, noise_norm], dim=-1)  # (B, M, in_dim)
+        else:
+            node_feats = torch.cat([re_part, im_part, elem_power], dim=-1)  # (B, M, in_dim)
 
         h = self.encoder(node_feats)
         for block in self.blocks:
@@ -116,6 +126,10 @@ class DeepBeamformingNet(nn.Module):
         theta_real = u / norm
         theta_imag = v / norm
         theta_ml = torch.complex(theta_real, theta_imag)  # (B, M), |theta_m| == 1.0
+
+        # Quantize phase if quant_bits is specified
+        if self.quant_bits is not None:
+            theta_ml = quantize_phase_ste(theta_ml, bits=self.quant_bits)
 
         # 2. Global head for power allocation and regularization
         h_glob = h.mean(dim=1)  # (B, hidden_dim)

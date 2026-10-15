@@ -25,6 +25,8 @@ def check(name: str, cond: bool) -> bool:
 
 
 def main():
+    torch.manual_seed(42)
+    np.random.seed(42)
     cfg = SystemConfig()
     all_ok = True
     B = 3

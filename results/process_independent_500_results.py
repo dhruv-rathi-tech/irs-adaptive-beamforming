@@ -33,7 +33,8 @@ def merge_worker_results(n_total: int = 500) -> dict:
     """Merge results from partial worker files or completed part files."""
     if os.path.exists(MERGED_RESULTS_PATH):
         print(f"Loading existing merged results from {MERGED_RESULTS_PATH}...")
-        return sio.loadmat(MERGED_RESULTS_PATH)
+        raw = sio.loadmat(MERGED_RESULTS_PATH)
+        return {k: v.flatten() for k, v in raw.items() if not k.startswith("__")}
 
     # Search for part files
     part_files = sorted(glob.glob(os.path.join(RESULTS_DIR, "phase3_independent_results_part*.mat")))

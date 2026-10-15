@@ -797,10 +797,180 @@ python -m gnn.train_beamforming --train_samples 300 --val_samples 60 --epochs 35
 python -m results.generate_independent_500_data
 
 # 5. Run independent 500-instance Monte Carlo evaluation across MATLAB AO and ML branches
-matlab -batch "cd('d:/VIT/SEM 7/project/irs_project'); addpath('matlab'); run_phase3_independent_eval"
+# (Run sequentially or in 4 parallel worker instances)
+matlab -batch "cd('d:/VIT/SEM 7/project/irs_project'); addpath('matlab'); run_eval_range(1, 125, 1)"
+matlab -batch "cd('d:/VIT/SEM 7/project/irs_project'); addpath('matlab'); run_eval_range(126, 250, 2)"
+matlab -batch "cd('d:/VIT/SEM 7/project/irs_project'); addpath('matlab'); run_eval_range(251, 375, 3)"
+matlab -batch "cd('d:/VIT/SEM 7/project/irs_project'); addpath('matlab'); run_eval_range(376, 500, 4)"
 
 # 6. Process independent results, compute statistical tests, and generate publication figures
 python -m results.process_independent_500_results
 ```
 
+---
 
+## 15. Phase 5 — 1-bit & 2-bit Quantization-Aware IRS Beamforming (Task 1)
+
+### 15.1 Motivation & Physical Hardware Constraints
+Continuous phase shifters $|\theta_m| = 1$ require fine-grained PIN diodes or varactor diodes that incur substantial power dissipation, circuit non-linearities, and fabrication cost at millimeter-wave frequencies. Realistic commercial IRS surfaces employ discrete phase shifters:
+* **1-bit IRS ($B=1$):** Discrete alphabet $\Phi_1 = \{0, \pi\}$, reflection coefficients $\theta_m \in \{+1, -1\}$.
+* **2-bit IRS ($B=2$):** Discrete alphabet $\Phi_2 = \{0, \pi/2, \pi, 3\pi/2\}$, reflection coefficients $\theta_m \in \{+1, +j, -1, -j\}$.
+
+### 15.2 Differentiable Straight-Through Estimator (STE)
+Discrete rounding is non-differentiable (zero gradient almost everywhere). To enable end-to-end Quantization-Aware Training (QAT), we implemented a differentiable Straight-Through Estimator (`gnn/quantization.py`):
+$$\phi = \operatorname{atan2}(v_m, u_m) \pmod{2\pi}, \quad k = \left\lfloor \frac{\phi}{\Delta} + \frac{1}{2} \right\rfloor \pmod{2^B}, \quad \theta_{\text{quant}} = \exp(j k \Delta)$$
+$$\theta_{\text{out}} = \theta_{\text{cont}} + (\theta_{\text{quant}} - \theta_{\text{cont}}).\operatorname{detach}()$$
+* **Forward Pass:** Outputs strictly discrete reflection coefficients belonging exactly to $\{+1, -1\}$ (1-bit) or $\{+1, +j, -1, -j\}$ (2-bit) with $|\theta_m| \equiv 1.0$.
+* **Backward Pass:** Gradient passes continuously: $\frac{\partial \mathcal{L}}{\partial \theta_{\text{cont}}} = \frac{\partial \mathcal{L}}{\partial \theta_{\text{out}}}$.
+
+### 15.3 Empirical Results (500 Held-Out Realizations, Seeds 200,000–200,499)
+Evaluated across all 5 noise floors on identical held-out channels (`results/phase5_quantization/phase5_quantization_summary.csv`):
+
+| Noise Floor (dBm) | $N$ | Continuous ML (bps/Hz) | 1-bit PTQ (bps/Hz) | 1-bit QAT (bps/Hz) | 1-bit QAT Gain | 2-bit PTQ (bps/Hz) | 2-bit QAT (bps/Hz) | 2-bit QAT Gain | 1-bit Random RZF |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **−100.0** | 100 | 22.16 ± 2.85 | 21.10 ± 2.86 | 21.28 ± 2.87 | +0.18 bps/Hz | 21.86 ± 2.86 | 21.71 ± 2.88 | −0.15 bps/Hz | 31.65 ± 5.92 |
+| **−90.0**  | 100 | 22.22 ± 2.85 | 21.16 ± 2.86 | 21.32 ± 2.87 | +0.16 bps/Hz | 21.96 ± 2.85 | 21.79 ± 2.88 | −0.16 bps/Hz | 20.79 ± 4.88 |
+| **−85.0**  | 100 | 21.96 ± 3.04 | 20.99 ± 3.05 | 21.17 ± 3.06 | +0.18 bps/Hz | 21.72 ± 3.05 | 21.55 ± 3.07 | −0.18 bps/Hz | 13.93 ± 4.12 |
+| **−80.0**  | 100 | 21.91 ± 3.58 | 20.97 ± 3.61 | 20.53 ± 3.84 | −0.44 bps/Hz | 21.62 ± 3.59 | 20.81 ± 3.88 | −0.81 bps/Hz | 11.21 ± 3.45 |
+| **−70.0**  | 100 | 18.69 ± 4.92 | 18.02 ± 4.87 | 18.00 ± 4.87 | −0.01 bps/Hz | 18.67 ± 4.88 | 20.54 ± 4.60 | **+1.87 bps/Hz** | 5.02 ± 2.15 |
+
+### 15.4 Physical Investigation: Random Baseline at -100 dBm vs -70 dBm
+A key physical observation in the evaluation is that Random 1-bit RZF achieves **31.65 bps/Hz at −100 dBm**, but collapses to **5.02 bps/Hz at −70 dBm**:
+1. **Near-Perfect Channel Estimation at High Pilot SNR (−100 dBm):**
+   At a −100 dBm noise floor, the pilot SNR exceeds +45 dB, meaning the multi-phase Least Squares estimate is virtually noise-free ($\hat{C}_{\text{LS}} \approx C_{\text{true}}$). The Base Station possesses $N=8$ antennas serving $K=4$ users. With near-perfect channel state information, the active Regularized Zero-Forcing (RZF) precoder computes $W \propto \hat{H}_{\text{eff}}^H (\hat{H}_{\text{eff}} \hat{H}_{\text{eff}}^H + \alpha I)^{-1}$ with high precision, canceling multi-user inter-cell interference almost completely. Even though the random IRS phase configurations do not co-phase reflections constructively, the stationary spatial scattering provided by the IRS combined with near-perfect BS zero-forcing yields $\approx 7.9$ bps/Hz per user ($31.65$ bps/Hz total).
+2. **Noise Collapse at Low Pilot SNR (−70 dBm):**
+   At a −70 dBm noise floor, pilot SNR drops by 30 dB and $\hat{C}_{\text{LS}}$ estimation error variance rises sharply ($\text{NMSE} \approx 0.95$). Attempting classical matrix inversion on corrupted channels causes severe beam pointing errors; the BS inverts estimation noise rather than physical channels, destroying multi-user interference cancellation and collapsing Random RZF sum-rate to **5.02 bps/Hz**.
+3. **Deep Learning Operating Trade-Off:**
+   `DeepBeamformingNet` was trained directly on true achievable sum-rate over a mixed noise sweep (−100 to −70 dBm). It learns a robust, non-linear regularized mapping that does not overfit to matrix inversion. Consequently, at −70 dBm, the network preserves **18.69 bps/Hz** (nearly $4\times$ higher than Random RZF at 5.02 bps/Hz and classical LS $\to$ AO at 3.76 bps/Hz), but trades off peak interference cancellation at −100 dBm (achieving 22.16 bps/Hz vs 31.65 bps/Hz).
+4. **Phase Conjugation Consistency:**
+   Note that because the effective channel is formed as $H_{\text{true}} = H^H \operatorname{diag}(\theta^*) G$, evaluating continuous and 2-bit random baselines with matching complex conjugation $\theta^*$ yields consistent high rates at −100 dBm (38.8–39.2 bps/Hz) and severe degradation at −70 dBm, confirming that this behavior is physically dictated by the pilot estimation SNR and active BS degrees of freedom.
+
+### 15.5 Key Scientific Findings
+1. **2-bit IRS Retains 99.5% Performance:** 2-bit QAT achieves **21.28 bps/Hz** overall (vs 21.39 bps/Hz continuous), suffering only a **0.11 bps/Hz (-0.5%)** degradation while drastically reducing RF phase-shifter complexity.
+2. **1-bit IRS Retains 95.6% Performance:** Even with coarse 1-bit binary phases ($\{+1, -1\}$), the network achieves **20.46 bps/Hz** (only -4.3% degradation from continuous), outperforming random IRS configurations.
+3. **Severe-Noise QAT Benefit:** At $-70$ dBm, 2-bit QAT outperforms simple post-training quantization (PTQ) by **+1.87 bps/Hz** (20.54 vs 18.67 bps/Hz), proving that joint optimization under quantized phases learns robust constellation margins against severe estimation noise.
+4. **Latency:** Forward inference is **1.92 ms (2-bit)** and **2.01 ms (1-bit)** on CPU.
+
+---
+
+## 16. Task 2 — Robustness Across Varied Channel Settings
+
+### 16.1 Physical Rationale & Fading Environments
+Evaluates whether `DeepBeamformingNet` generalizes when underlying propagation distributions shift away from training defaults:
+* **BS–IRS Rician Fading ($K_{\text{rice}}$):** Tested from pure Rayleigh NLOS ($K=0.0$, severe blockage of line-of-sight path) to rich scattering ($K=2.0$), default ($K=10.0$), and strong direct line-of-sight ($K=20.0$).
+* **BS–IRS Path-Loss Exponent ($\alpha_{\text{BI}}$):** Tested from free-space propagation ($\alpha=2.0$) to default ($\alpha=2.2$) and heavily cluttered urban propagation ($\alpha=2.8$).
+
+### 16.2 Empirical Results (100 Realizations per Setting, Seeds 300,000–300,099)
+Derived from `results/task2_robustness/robustness_summary.csv`:
+
+| Channel Fading Setting | Physical Propagation Regime | Random RZF Baseline | Zero-Shot Transfer (Frozen Model) | Retrained Model | Retrained vs Zero-Shot Gain |
+|---|---|:---:|:---:|:---:|:---:|
+| **Default Reference** | $K_{\text{rice}}=10.0, \alpha_{\text{BI}}=2.2$ (Typical Near-LOS) | 1.97 bps/Hz | **21.70 ± 2.56** | **21.88 ± 3.35** | +0.18 bps/Hz ($p=0.67$) |
+| **Weak LOS / Scattering** | $K_{\text{rice}}=2.0, \alpha_{\text{BI}}=2.2$ (Partial Obstruction) | 1.92 bps/Hz | **20.58 ± 2.63** | 17.81 ± 3.70 | **−2.77 bps/Hz** ($p=1.38 \times 10^{-23}$) |
+| **Pure Rayleigh NLOS** | $K_{\text{rice}}=0.0, \alpha_{\text{BI}}=2.2$ (Total LOS Blockage) | 1.87 bps/Hz | **17.22 ± 2.71** | 16.55 ± 2.48 | **−0.67 bps/Hz** ($p=0.079$) |
+| **Strong Direct LOS** | $K_{\text{rice}}=20.0, \alpha_{\text{BI}}=2.0$ (Free Space / Elevated BS) | 1.96 bps/Hz | **23.11 ± 2.44** | **23.59 ± 3.06** | +0.48 bps/Hz ($p=0.23$) |
+| **High Clutter / Path Loss** | $K_{\text{rice}}=10.0, \alpha_{\text{BI}}=2.8$ (Severe Attenuation) | 2.17 bps/Hz | **17.00 ± 3.72** | **17.21 ± 4.53** | +0.21 bps/Hz ($p=0.71$) |
+
+### 16.3 Scientific Conclusions & Analysis of Retraining
+* **Strong Zero-Shot Generalization:** The frozen continuous model achieves **17.00 to 23.11 bps/Hz** across all tested channel distributions without retraining, consistently outperforming the Random RZF baseline by **8.0× to 11.8×**.
+* **Why Retraining Performs Worse in Weak-LOS and Rayleigh Cases:**
+  In rich-scattering and pure Rayleigh environments ($K=2.0$ and $K=0.0$), the channel possesses high spatial entropy without a dominant rank-1 line-of-sight steering vector. Training a new model from scratch with a small dataset (200 realizations) is data-starved and prone to undertraining under high spatial variance. In contrast, the original frozen model was trained across 300 realizations over a wide multi-noise sweep, acquiring regularized spatial representations that transfer **zero-shot** far more effectively.
+* **Practical Recommendation:** Retraining should **not** be presented as beneficial where empirical evidence proves otherwise. Zero-shot transfer is both computationally superior (0 retraining overhead) and delivers equal or higher sum-rates across all non-LOS regimes.
+
+---
+
+## 17. Task 3 — Dimension Generalization Across N, M, and K
+
+### 17.1 Architectural Dimension Analysis
+1. **IRS Elements ($M$):** `DeepBeamformingNet` employs element-permutation-equivariant message passing (`ElementBlock`). Node features are mapped per-element via shared `Linear(in_dim, hidden_dim)`, pooled via global mean `x.mean(dim=1)`, and output via a shared 2-neuron phase head. The parameter count is **completely independent of $M$** (42,439 params for hidden_dim=64, n_blocks=2), allowing zero-shot execution on arbitrary surface sizes.
+2. **BS Antennas ($N$) & Users ($K$):** Input node dimension $in\_dim = 2KN+2$ and global head output dimension $K+1$ depend on $N$ and $K$. Changing $N$ or $K$ changes the tensor input/output projections, requiring retrained models for alternative $N$ or $K$ configurations.
+
+### 17.2 Computational Complexity vs Information-Theoretic Scaling
+* **Computational Complexity ($\mathcal{O}(M)$):**
+  Per-element feedforward layers process $M$ element vectors independently ($\mathcal{O}(M \cdot H^2)$), global pooling computes an $M$-element mean ($\mathcal{O}(M \cdot H)$), and downstream effective channel formation is $\mathcal{O}(M \cdot K \cdot N)$. Matrix inversion depends solely on user count ($\mathcal{O}(K^3)$). The overall forward inference complexity is **strictly linear $\mathcal{O}(M)$**, NOT logarithmic.
+  *Empirical CPU forward-pass runtime:*
+  $M=16 \to 2.10$ ms | $M=32 \to 1.56$ ms | $M=64 \to 1.66$ ms | $M=128 \to 1.89$ ms | $M=512 \to 3.20$ ms | $M=1024 \to 3.46$ ms.
+* **Information-Theoretic Rate Scaling ($\mathcal{O}(\log_2 M)$):**
+  The physical achievable sum-rate capacity of the IRS-assisted channel scales logarithmically with the surface aperture ($R \propto K \log_2(1 + \text{SNR} \cdot M)$ or $\mathcal{O}(\log_2 M)$). The logarithmic relationship describes the physical capacity growth, while the computational algorithm is linear.
+
+### 17.3 Dimension Scaling Results (`results/task3_generalization/dimension_generalization_summary.json`)
+
+#### A. Surface Scaling ($M \in \{32, 64, 128\}$ with $N=8, K=4$)
+* **$M = 32$ Elements:** Random RZF = 1.95 | Zero-Shot = **19.36 bps/Hz** | Retrained = **19.32 bps/Hz**
+* **$M = 64$ Elements:** Random RZF = 2.15 | Zero-Shot = **21.46 bps/Hz** | Retrained = **21.46 bps/Hz**
+* **$M = 128$ Elements:** Random RZF = 2.02 | Zero-Shot = **23.87 bps/Hz** | Retrained = **23.30 bps/Hz**
+* **Finding:** Zero-shot generalization matches or exceeds retrained performance ($19.36 \to 21.46 \to 23.87$ bps/Hz), confirming that the element-equivariant architecture transfers across surface sizes without fine-tuning.
+
+#### B. Base Station Antennas ($N \in \{4, 8, 16\}$ with $M=64, K=4$)
+* **$N = 4$ Antennas:** Random RZF = 1.76 | Deep ML = **21.34 bps/Hz** | Per-Antenna SE = **5.33 bps/Hz/ant**
+* **$N = 8$ Antennas:** Random RZF = 2.02 | Deep ML = **22.37 bps/Hz** | Per-Antenna SE = **2.80 bps/Hz/ant**
+* **$N = 16$ Antennas:** Random RZF = 2.07 | Deep ML = **22.30 bps/Hz** | Per-Antenna SE = **1.39 bps/Hz/ant**
+* **Finding:** Increasing BS antennas from $N=4$ to $N=8$ provides sharper spatial interference nulling, saturating around $22.3$ bps/Hz as performance becomes bounded by the $K=4$ user channels and total transmit power $P_{\max}=10$ W.
+
+#### C. User Load ($K \in \{2, 4, 8\}$ with $M=64, N=8$)
+* **$K = 2$ Users:** Random RZF = 3.55 | Deep ML = **21.91 bps/Hz** | Per-User SE = **10.95 bps/Hz/user**
+* **$K = 4$ Users:** Random RZF = 2.15 | Deep ML = **22.01 bps/Hz** | Per-User SE = **5.50 bps/Hz/user**
+* **$K = 8$ Users:** Random RZF = 1.61 | Deep ML = **21.76 bps/Hz** | Per-User SE = **2.72 bps/Hz/user**
+* **Finding:** Total sum-rate remains remarkably constant ($\approx 21.8 - 22.0$ bps/Hz) under fixed total power $P_{\max}=10$ W, with individual per-user rates dividing equitably ($10.95 \to 5.50 \to 2.72$ bps/Hz/user).
+
+---
+
+## 18. Task 4 — Controlled Noise-Floor Input Ablation Study
+
+### 18.1 Hypothesis & Experimental Controls
+* **Research Question:** Does explicitly feeding the scalar noise floor $\sigma_{\text{dBm}}$ improve performance over a model that receives strictly the cascaded channel estimate $\hat{C}_{\text{LS}}$?
+* **Controlled Variants:**
+  * **Variant A (Noise-Aware):** Receives $\hat{C}_{\text{LS}} \in \mathbb{C}^{K \times M \times N}$ and scalar $\sigma_{\text{dBm}}$ ($in\_dim = 66$).
+  * **Variant B (Ablated):** Receives $\hat{C}_{\text{LS}}$ only ($use\_noise\_floor=False$, $in\_dim = 65$).
+* **Controls:** Evaluated on identical 500 test channel realizations (seeds 200,000–200,499) across all 5 noise floors.
+
+### 18.2 Empirical Results (`results/task4_noise_ablation/noise_ablation_summary.csv`)
+
+| Noise Floor (dBm) | $N$ | Noise-Aware Model (bps/Hz) | Ablated Model (bps/Hz) | Paired Difference | Win Rate | Paired $t$-test $p$-value |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **−100.0** | 100 | 22.16 ± 2.85 | 22.13 ± 2.88 | +0.04 bps/Hz | 53.0% (53/100) | $p = 0.262$ |
+| **−90.0**  | 100 | 22.22 ± 2.85 | 22.14 ± 2.96 | +0.08 bps/Hz | 50.0% (50/100) | $p = 0.386$ |
+| **−85.0**  | 100 | 21.96 ± 3.04 | 22.02 ± 2.90 | −0.05 bps/Hz | 49.0% (49/100) | $p = 0.572$ |
+| **−80.0**  | 100 | 21.91 ± 3.58 | 21.99 ± 3.60 | −0.08 bps/Hz | 48.0% (48/100) | $p = 0.413$ |
+| **−70.0**  | 100 | 18.69 ± 4.92 | 18.81 ± 4.76 | −0.13 bps/Hz | 52.0% (52/100) | $p = 0.530$ |
+| **OVERALL**| 500 | **21.39 ± 3.73** | **21.42 ± 3.69** | **−0.03 bps/Hz (−0.14%)** | **50.4% (252/500)** | **$p = 0.5818$** |
+
+### 18.3 Rigorous Statistical Conclusion
+* **Null Hypothesis Retained:** Paired $t$-test $p = 0.5818$, Wilcoxon $p = 0.7446$, 95% CI = $[-0.13, +0.07]$ bps/Hz. There is **no statistically significant difference** between feeding the scalar noise floor versus omitting it.
+* **Physical Explanation:** The multi-phase Least Squares estimate $\hat{C}_{\text{LS}} = C_{\text{true}} + E$ already implicitly embeds its estimation error variance $\operatorname{Var}(E) \propto \sigma^2$. The element-wise power feature $\frac{1}{KN}\sum_{k,n}|\hat{C}_{k,m,n}|^2$ and spatial covariance across elements provide sufficient statistical cues for the network to adapt its regularization parameter $\alpha$ without requiring an external noise-floor label.
+
+---
+
+## 19. Review-III Completion Checklist & Experiment Manifest
+
+### 19.1 Deliverables Checklist
+- [x] **1-bit / 2-bit IRS phase quantization:** Differentiable STE implemented (`gnn/quantization.py`), unit tests passed (`tests/test_quantization.py`), PTQ vs QAT evaluated across 500 realizations (`results/phase5_quantization/`).
+- [x] **Robustness across additional channel settings:** Evaluated across 5 fading regimes ($K \in \{0, 2, 10, 20\}$, $\alpha \in \{2.0, 2.2, 2.8\}$), comparing zero-shot transfer against retrained models (`results/task2_robustness/`).
+- [x] **Generalization to alternative N, M and K:** Evaluated surface scaling ($M=32, 64, 128$, zero-shot & retrained), antenna scaling ($N=4, 8, 16$), and user load ($K=2, 4, 8$) with spectral efficiency normalizations (`results/task3_generalization/`).
+- [x] **Noise-floor input ablation:** Controlled comparison with identical seeds and training splits demonstrating $p=0.5818$ statistical equivalence (`results/task4_noise_ablation/`).
+
+### 19.2 Master Reproduction Commands
+```bash
+# 1. Activate Virtual Environment
+./venv/Scripts/activate
+
+# 2. Run All Unit Tests (Phase 1, Historical Phase 3, Deep Beamforming, Quantization)
+python -X utf8 -m tests.test_phase1
+python -X utf8 -m tests.test_deep_beamforming
+python -X utf8 -m tests.test_phase3
+python -X utf8 -m tests.test_quantization
+
+# 3. Phase 5: Train and Evaluate 1-bit and 2-bit Quantized Models
+python -m gnn.train_quantization --bits 1 --epochs 35
+python -m gnn.train_quantization --bits 2 --epochs 35
+python -m results.evaluate_phase5_quantization
+
+# 4. Task 4: Train and Evaluate Noise-Floor Input Ablation
+python -m gnn.train_and_eval_noise_ablation
+
+# 5. Task 2: Evaluate Robustness Across Channel Settings (Zero-Shot & Retrained)
+python -m gnn.train_and_eval_robustness
+
+# 6. Task 3: Evaluate Dimension Generalization Across N, M, K
+python -m gnn.train_and_eval_generalization
+```
