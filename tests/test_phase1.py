@@ -38,7 +38,7 @@ def main():
     gram = X_p @ X_p.conj().T
     expected = (cfg.tau / cfg.N) * np.eye(cfg.N)
     check("pilot matrix shape == (N, tau)", X_p.shape == (cfg.N, cfg.tau))
-    check("pilot matrix orthogonality (X_p X_p^H ≈ (tau/N) I)",
+    check("pilot matrix orthogonality (X_p X_p^H ~= (tau/N) I)",
           np.allclose(gram, expected, atol=1e-8))
 
     # --- dBm -> Watts conversion sanity ---

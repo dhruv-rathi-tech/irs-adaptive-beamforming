@@ -1,0 +1,50 @@
+{
+  "hardware_environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 126 Stepping 5, GenuineIntel",
+    "python_version": "3.12.0",
+    "torch_version": "2.14.0+cpu",
+    "num_threads": 4
+  },
+  "pure_model_inference": {
+    "mean_ms": 2.368519998854026,
+    "std_ms": 0.7663087670931018,
+    "median_ms": 2.2505000233650208,
+    "p95_ms": 3.6188601516187173,
+    "p99_ms": 3.979801018722353,
+    "min_ms": 1.483200117945671,
+    "max_ms": 9.661999996751547,
+    "n_trials": 200
+  },
+  "ls_channel_estimation": {
+    "mean_ms": 44.78485002182424,
+    "std_ms": 5.32438144965933,
+    "median_ms": 43.21615002118051,
+    "p95_ms": 52.637720084749155,
+    "min_ms": 40.80340010114014,
+    "max_ms": 71.97630009613931,
+    "n_trials": 50
+  },
+  "matched_rzf_inversion": {
+    "mean_ms": 0.44597649830393493,
+    "std_ms": 0.1843077870572992,
+    "median_ms": 0.37795002572238445,
+    "p95_ms": 0.7748099509626618,
+    "n_trials": 200
+  },
+  "classical_cvx_ao": {
+    "mean_s": 10.4928134,
+    "std_s": 4.243595719564087,
+    "median_s": 9.361049999999999,
+    "p95_s": 17.926279999999984,
+    "min_s": 2.9517,
+    "max_s": 58.8296,
+    "n_trials": 500
+  },
+  "end_to_end": {
+    "ml_pipeline_mean_ms": 47.15337002067827,
+    "classical_pipeline_mean_ms": 10537.598250021823,
+    "optimization_speedup_factor": 4430.113912940061,
+    "end_to_end_speedup_factor": 223.47497634635124
+  }
+}

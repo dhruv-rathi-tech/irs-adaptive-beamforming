@@ -137,7 +137,7 @@ for i = start_idx:end_idx
     Phi_rand = diag(conj(theta_rand));
     H_eff_rand = zeros(K, N);
     for k = 1:K
-        H_eff_rand(k, :) = theta_rand.' * C_hat{k};
+        H_eff_rand(k, :) = conj(theta_rand).' * C_hat{k};
     end
     W_rzf_unnorm = H_eff_rand' * inv(H_eff_rand * H_eff_rand' + (K * sigma / P_max) * eye(K));
     for k = 1:K

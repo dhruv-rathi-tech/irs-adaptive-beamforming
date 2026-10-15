@@ -139,7 +139,7 @@ def run_robustness_study():
             rng_r = np.random.default_rng(base_test_seed + i)
             th_r = torch.from_numpy(np.exp(1j * rng_r.uniform(0, 2*np.pi, (1, 64)))).to(torch.complex64).to(device)
             ch_i = test_c_hat[i:i+1]
-            H_eff = torch.einsum("bm,bkmn->bkn", th_r, ch_i)
+            H_eff = torch.einsum("bm,bkmn->bkn", th_r.conj(), ch_i)
             H_eff_H = H_eff.conj().transpose(-2, -1)
             G_eff = torch.bmm(H_eff, H_eff_H)
             I_K = torch.eye(4, dtype=torch.complex64, device=device).unsqueeze(0)

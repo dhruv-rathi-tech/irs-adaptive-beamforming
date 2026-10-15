@@ -57,32 +57,33 @@ The received signal at user $k$ is:
 $$y_k = \boldsymbol{\theta}^T C_k w_k s_k + \sum_{j \neq k} \boldsymbol{\theta}^T C_k w_j s_j + n_k, \quad n_k \sim \mathcal{CN}(0, \sigma^2)$$
 
 The true-channel achievable sum-rate is:
-$$R_{\text{sum}}(W, \boldsymbol{\theta}) = \sum_{k=1}^K \log_2 \left(1 + \frac{|\boldsymbol{\theta}^T C_k w_k|^2}{\sum_{j \neq k} |\boldsymbol{\theta}^T C_k w_j|^2 + \sigma^2}\right)$$
+$$R_{\text{sum}}(W, \boldsymbol{\theta}) = \sum_{k=1}^K \log_2 \left(1 + \frac{|(\boldsymbol{\theta}^*)^T C_k w_k|^2}{\sum_{j \neq k} |(\boldsymbol{\theta}^*)^T C_k w_j|^2 + \sigma^2}\right)$$
 subject to $\sum_{k=1}^K \|w_k\|^2 \le P_{\max}$ and $|\theta_m| = 1, \forall m$.
 
 ---
 
 ## Performance Summary (500 Independent Realizations)
 
-Comprehensive evaluation conducted across 500 completely independent test channel realizations (seeds `100000`–`100499`) evaluated at identical physical channel instances:
+Evaluation conducted across 500 independent test channel realizations (seeds `100000`–`100499`, 100 trials per noise floor across 5 noise tiers) using identical channel realizations:
 
-| Noise Floor ($\sigma^2$) | Received SNR | Full AO Sum-Rate | Deep Beamforming | Absolute Gain | Relative Gain | ML Win Rate | $p$-value ($t$-test) |
-|---|---|---|---|---|---|---|---|
-| **-70.0 dBm** | -16.4 dB | 3.11 bps/Hz | **18.64 bps/Hz** | **+15.53 bps/Hz** | **+500.0%** | **100% (50/50)** | $< 10^{-15}$ |
-| **-75.0 dBm** | -11.4 dB | 7.64 bps/Hz | **21.20 bps/Hz** | **+13.56 bps/Hz** | **+177.5%** | **100% (50/50)** | $< 10^{-15}$ |
-| **-77.5 dBm** | -8.9 dB | 11.83 bps/Hz | **24.22 bps/Hz** | **+12.39 bps/Hz** | **+104.7%** | **100% (50/50)** | $< 10^{-15}$ |
-| **-80.0 dBm** | -6.4 dB | 14.86 bps/Hz | **24.89 bps/Hz** | **+10.03 bps/Hz** | **+67.5%** | **98.0% (49/50)** | $< 10^{-15}$ |
-| **-85.0 dBm** | -1.4 dB | 18.12 bps/Hz | **25.15 bps/Hz** | **+7.03 bps/Hz** | **+38.8%** | **100% (50/50)** | $< 10^{-15}$ |
-| **-90.0 dBm** | +3.6 dB | 22.86 bps/Hz | **24.78 bps/Hz** | **+1.92 bps/Hz** | **+8.4%** | **78.0% (39/50)** | $2.3 \times 10^{-5}$ |
-| **-92.5 dBm** | +6.1 dB | **24.36 bps/Hz** | 24.30 bps/Hz | -0.06 bps/Hz | -0.2% | 46.0% (23/50) | $0.85$ (stat. tied) |
-| **-95.0 dBm** | +8.6 dB | **25.99 bps/Hz** | 24.46 bps/Hz | -1.53 bps/Hz | -5.9% | 28.0% (14/50) | $4.1 \times 10^{-5}$ |
-| **-100.0 dBm** | +13.6 dB | **29.74 bps/Hz** | 24.84 bps/Hz | -4.90 bps/Hz | -16.5% | 12.0% (6/50) | $< 10^{-15}$ |
-| **Overall** | — | 16.57 bps/Hz | **23.57 bps/Hz** | **+7.00 bps/Hz** | **+42.2%** | **81.6% (408/500)** | $< 10^{-15}$ |
+| Noise Floor ($\sigma^2$) | Full AO (CVX) | Deep Beamforming | Matched Random RZF | Gain vs. AO | Win Rate vs. AO | $p$-value (vs. AO) | Gain vs. RZF | Win Rate vs. RZF | $p$-value (vs. RZF) |
+|---|---|---|---|---|---|---|---|---|---|
+| **-100.0 dBm** | **27.40 ± 9.04 bps/Hz** | 22.58 ± 2.55 bps/Hz | **30.34 ± 9.00 bps/Hz** | -4.82 bps/Hz | 24.0% (24/100) | $1.25 \times 10^{-8}$ | -7.76 bps/Hz | 15.0% (15/100) | $1.62 \times 10^{-15}$ |
+| **-90.0 dBm** | 15.50 ± 7.20 bps/Hz | **22.08 ± 2.57 bps/Hz** | 19.36 ± 7.49 bps/Hz | **+6.59 bps/Hz** | 82.0% (82/100) | $4.23 \times 10^{-14}$ | **+2.72 bps/Hz** | 62.0% (62/100) | $7.23 \times 10^{-4}$ |
+| **-85.0 dBm** | 10.97 ± 6.42 bps/Hz | **22.02 ± 2.90 bps/Hz** | 13.86 ± 5.94 bps/Hz | **+11.06 bps/Hz** | 94.0% (94/100) | $8.11 \times 10^{-33}$ | **+8.16 bps/Hz** | 91.0% (91/100) | $3.49 \times 10^{-26}$ |
+| **-80.0 dBm** | 7.41 ± 4.39 bps/Hz | **22.16 ± 3.20 bps/Hz** | 9.98 ± 5.18 bps/Hz | **+14.76 bps/Hz** | 100.0% (100/100) | $3.16 \times 10^{-56}$ | **+12.18 bps/Hz** | 99.0% (99/100) | $5.61 \times 10^{-44}$ |
+| **-70.0 dBm** | 3.76 ± 2.08 bps/Hz | **20.14 ± 4.69 bps/Hz** | 4.88 ± 2.74 bps/Hz | **+16.38 bps/Hz** | 100.0% (100/100) | $5.23 \times 10^{-60}$ | **+15.26 bps/Hz** | 100.0% (100/100) | $1.23 \times 10^{-58}$ |
+| **Overall** | 13.01 ± 10.31 bps/Hz | **21.80 ± 3.38 bps/Hz** | 15.69 ± 10.83 bps/Hz | **+8.79 bps/Hz** | **80.0% (400/500)** | **$1.48 \times 10^{-65}$** | **+6.11 bps/Hz** | **73.4% (367/500)** | **$9.13 \times 10^{-35}$** |
 
-### Computation Latency Benchmark
-- **Classical AO (CVX / SeDuMi):** $53.6\text{ s}$ average per channel realization.
-- **Deep Beamforming (`DeepBeamformingNet` CPU):** $1.15\text{ ms}$ average per channel realization.
-- **Speedup Factor:** **$46,600\times$**, enabling sub-millisecond real-time beam adaptation.
+> **Scientific Operating-Regime Boundary Note:**
+> - At high pilot SNR (-100 dBm), the Base Station has surplus spatial degrees of freedom ($N=8$ antennas, $K=4$ users). Low pilot error enables classical AO (27.40 bps/Hz) and matched RZF with random IRS phases (30.34 bps/Hz) to outperform direct ML (22.58 bps/Hz).
+> - In moderate-to-severe noise regimes (-90 to -70 dBm), pilot estimation error contaminates classical matrix inversions, causing AO and RZF performance to degrade sharply. Deep Beamforming maintains robust sum-rates (20.14–22.28 bps/Hz) through learned direct optimization.
+
+### Computation Latency Benchmark (Measured on Identical Hardware)
+- **Classical AO (CVX / SeDuMi):** $10.49 \pm 4.24\text{ s}$ per realization (imported from 500-sample MATLAB evaluation).
+- **Deep Beamforming Inference (`DeepBeamformingNet` CPU):** $2.37 \pm 0.77\text{ ms}$ per realization (median: $2.25\text{ ms}$, 200 trials).
+- **Algorithmic Optimization Speedup:** **$4,430.1\times$**.
+- **End-to-End Latency:** $47.15\text{ ms}$ (including $44.78\text{ ms}$ LS estimation and $0.45\text{ ms}$ active precoder generation) vs. $10.54\text{ s}$ total for classical pipeline (**$223.5\times$** end-to-end acceleration).
 
 ---
 
@@ -292,6 +293,19 @@ Reproduce:
 ```bash
 python -m gnn.train_and_eval_noise_ablation
 ```
+
+---
+
+### 5. High-Resolution 15-Point Noise-Floor Sweep
+* **Evaluation Grid:** 15 noise floor levels from -100.0 dBm to -60.0 dBm (=100$ per tier, 1,500 total realizations).
+* **Operating Regime Crossover:** Identified at **-92.5 dBm**, where ML achieves .64 \pm 2.77$ bps/Hz vs Matched RZF .40 \pm 8.49$ bps/Hz ($+0.23$ bps/Hz gain, 52% wins).
+* **High Noise Dominance:** At -60.0 dBm, classical RZF degrades to .70 \pm 1.31$ bps/Hz while ML achieves .42 \pm 5.49$ bps/Hz (**+14.72 bps/Hz gain**, 100% win rate,  = 6.55 	imes 10^{-50}$).
+* **Quantization Robustness:** 2-bit QAT maintains $\ge 92.6\%$ and 1-bit QAT maintains $\ge 91.4\%$ of continuous rate even in severe noise.
+
+Reproduce:
+`ash
+python -m results.run_noise_floor_expansion
+`
 
 ---
 

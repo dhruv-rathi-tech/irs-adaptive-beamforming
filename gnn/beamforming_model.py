@@ -142,16 +142,28 @@ class DeepBeamformingNet(nn.Module):
 
         return theta_ml, p_alloc, alpha
 
+    @staticmethod
+    def compute_effective_channel(c_hat_ls: torch.Tensor, theta_ml: torch.Tensor) -> torch.Tensor:
+        """
+        Compute effective downlink channel: H_eff = (theta_ml^*)^T @ C_hat_ls.
+        Matches physical downlink propagation: h_k^H @ diag(theta_ml^*) @ G.
+        c_hat_ls: (B, K, M, N)
+        theta_ml: (B, M)
+        Returns: H_eff: (B, K, N)
+        """
+        return torch.einsum('bm,bkmn->bkn', theta_ml.conj(), c_hat_ls)
+
     def construct_beamformer(self, c_hat_ls: torch.Tensor, theta_ml: torch.Tensor,
                              p_alloc: torch.Tensor, alpha: torch.Tensor,
                              P_max: float = 10.0) -> torch.Tensor:
         """
         Construct RZF beamformer W_ML in C^(B, N, K) satisfying ||W_ML||_F^2 = P_max.
-        Effective channel for user k: h_eff_k = theta_ml^T @ C_hat_k
+        Effective channel for user k: h_eff_k = (theta_ml^*)^T @ C_hat_k
+        Matches physical downlink propagation: h_k^H @ diag(theta_ml^*) @ G.
         """
         B, K, M, N = c_hat_ls.shape
-        # Compute H_eff: (B, K, N)
-        H_eff = torch.einsum('bm,bkmn->bkn', theta_ml, c_hat_ls)  # (B, K, N)
+        # Compute H_eff: (B, K, N) using production helper
+        H_eff = self.compute_effective_channel(c_hat_ls, theta_ml)  # (B, K, N)
 
         # RZF: W_unnorm = H_eff^H (H_eff H_eff^H + alpha * I_K)^(-1)
         H_eff_H = H_eff.conj().transpose(-2, -1)  # (B, N, K)

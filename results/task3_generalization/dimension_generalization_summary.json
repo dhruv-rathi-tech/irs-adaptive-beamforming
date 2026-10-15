@@ -3,72 +3,72 @@
     {
       "M": 32,
       "zero_shot_sum_rate": 19.357036697864533,
-      "retrained_sum_rate": 19.31863065958023,
-      "random_rzf_sum_rate": 1.9481269121170044,
-      "per_user_rate": 4.829657664895057,
-      "per_antenna_rate": 2.4148288324475287
+      "retrained_sum_rate": 19.23148305416107,
+      "random_rzf_sum_rate": 13.469760146737098,
+      "per_user_rate": 4.807870763540268,
+      "per_antenna_rate": 2.403935381770134
     },
     {
       "M": 64,
       "zero_shot_sum_rate": 21.45548286437988,
       "retrained_sum_rate": 21.45548286437988,
-      "random_rzf_sum_rate": 2.1531203757971524,
+      "random_rzf_sum_rate": 13.6092593729496,
       "per_user_rate": 5.36387071609497,
       "per_antenna_rate": 2.681935358047485
     },
     {
       "M": 128,
       "zero_shot_sum_rate": 23.87084593772888,
-      "retrained_sum_rate": 23.303585588932037,
-      "random_rzf_sum_rate": 2.0222538851201532,
-      "per_user_rate": 5.825896397233009,
-      "per_antenna_rate": 2.9129481986165047
+      "retrained_sum_rate": 23.247732305526732,
+      "random_rzf_sum_rate": 13.443233755230903,
+      "per_user_rate": 5.811933076381683,
+      "per_antenna_rate": 2.9059665381908415
     }
   ],
   "N_scaling": [
     {
       "N": 4,
-      "retrained_sum_rate": 21.338599741458893,
-      "random_rzf_sum_rate": 1.7627017386257648,
-      "per_user_rate": 5.334649935364723,
-      "per_antenna_rate": 5.334649935364723
+      "retrained_sum_rate": 21.165568685531618,
+      "random_rzf_sum_rate": 11.116563403606415,
+      "per_user_rate": 5.291392171382904,
+      "per_antenna_rate": 5.291392171382904
     },
     {
       "N": 8,
       "retrained_sum_rate": 22.3689635515213,
-      "random_rzf_sum_rate": 2.0157402686774732,
+      "random_rzf_sum_rate": 13.839129588007927,
       "per_user_rate": 5.592240887880325,
       "per_antenna_rate": 2.7961204439401626
     },
     {
       "N": 16,
-      "retrained_sum_rate": 22.29819836616516,
-      "random_rzf_sum_rate": 2.0715890057384967,
-      "per_user_rate": 5.57454959154129,
-      "per_antenna_rate": 1.3936373978853225
+      "retrained_sum_rate": 22.34950671195984,
+      "random_rzf_sum_rate": 15.143351969122886,
+      "per_user_rate": 5.58737667798996,
+      "per_antenna_rate": 1.39684416949749
     }
   ],
   "K_scaling": [
     {
       "K": 2,
-      "retrained_sum_rate": 21.90579433441162,
-      "random_rzf_sum_rate": 3.5509250447154046,
-      "per_user_rate": 10.95289716720581,
-      "per_antenna_rate": 2.7382242918014525
+      "retrained_sum_rate": 21.9761723279953,
+      "random_rzf_sum_rate": 11.75039678812027,
+      "per_user_rate": 10.98808616399765,
+      "per_antenna_rate": 2.7470215409994125
     },
     {
       "K": 4,
       "retrained_sum_rate": 22.01081911325455,
-      "random_rzf_sum_rate": 2.154080852866173,
+      "random_rzf_sum_rate": 15.022392742335796,
       "per_user_rate": 5.502704778313637,
       "per_antenna_rate": 2.7513523891568186
     },
     {
       "K": 8,
-      "retrained_sum_rate": 21.759976971149445,
-      "random_rzf_sum_rate": 1.6127740800380708,
-      "per_user_rate": 2.7199971213936807,
-      "per_antenna_rate": 2.7199971213936807
+      "retrained_sum_rate": 21.183600771427155,
+      "random_rzf_sum_rate": 11.102320782840252,
+      "per_user_rate": 2.6479500964283944,
+      "per_antenna_rate": 2.6479500964283944
     }
   ]
 }

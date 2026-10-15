@@ -67,7 +67,7 @@ def evaluate_configuration(cfg: SystemConfig, model: DeepBeamformingNet, n_sampl
             # Random baseline
             rng_r = np.random.default_rng(base_seed + i)
             th_r = torch.from_numpy(np.exp(1j * rng_r.uniform(0, 2*np.pi, (1, cfg.M)))).to(torch.complex64).to(device)
-            H_eff = torch.einsum("bm,bkmn->bkn", th_r, ch_i)
+            H_eff = torch.einsum("bm,bkmn->bkn", th_r.conj(), ch_i)
             H_eff_H = H_eff.conj().transpose(-2, -1)
             G_eff = torch.bmm(H_eff, H_eff_H)
             I_K = torch.eye(cfg.K, dtype=torch.complex64, device=device).unsqueeze(0)

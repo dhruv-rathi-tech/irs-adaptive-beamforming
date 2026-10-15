@@ -1,0 +1,207 @@
+{
+  "git_commit": "d54e9baaa62c16a06e088e5ffa893b8e3c55c510",
+  "git_branch": "main",
+  "frozen_backup_branch": "pre-publication-audit-freeze",
+  "environment": {
+    "python_version": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+    "os": "win32",
+    "torch": "2.14.0+cpu",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2",
+    "pandas": "3.0.6"
+  },
+  "seed_allocations": {
+    "training_phase3": {
+      "base_seed": 1000,
+      "samples": 300,
+      "range": [
+        1000,
+        1299
+      ]
+    },
+    "validation_phase3": {
+      "base_seed": 50000,
+      "samples": 60,
+      "range": [
+        50000,
+        50059
+      ]
+    },
+    "phase3_independent_test": {
+      "base_seed": 100000,
+      "samples": 500,
+      "range": [
+        100000,
+        100499
+      ]
+    },
+    "phase5_quantization_test": {
+      "base_seed": 200000,
+      "samples": 500,
+      "range": [
+        200000,
+        200499
+      ]
+    },
+    "task4_noise_ablation_test": {
+      "base_seed": 200000,
+      "samples": 500,
+      "range": [
+        200000,
+        200499
+      ]
+    },
+    "task2_robustness_test": {
+      "base_seed": 300000,
+      "samples": 100,
+      "range": [
+        300000,
+        300099
+      ]
+    },
+    "task2_robustness_retrain": {
+      "base_seed": 310000,
+      "samples": 200,
+      "range": [
+        310000,
+        310199
+      ]
+    },
+    "task3_generalization_test": {
+      "base_seed": 410000,
+      "samples": 80,
+      "range": [
+        410000,
+        410079
+      ]
+    },
+    "task3_generalization_retrain": {
+      "base_seed": 420000,
+      "samples": 200,
+      "range": [
+        420000,
+        420199
+      ]
+    },
+    "phase9_confirmatory_test": {
+      "base_seed": 500000,
+      "samples": 500,
+      "range": [
+        500000,
+        500499
+      ]
+    },
+    "noise_floor_expanded_test": {
+      "base_seed": 600000,
+      "samples": 100,
+      "tiers": 15,
+      "total_evaluations": 1500,
+      "range": [
+        600000,
+        601499
+      ]
+    }
+  },
+  "checkpoints": {
+    "results/gnn/best_beamforming_model.pt": {
+      "sha256": "25c75f469f9eafb2d49308d4498546d7d76f611e2713260318a2d29ddd31c517",
+      "description": "Retrained Phase 3 DeepBeamformingNet with mathematically corrected IRS phase conjugation"
+    },
+    "results/phase5_quantization/model_1bit_qat.pt": {
+      "sha256": "e90f0bdd8c035ddbdbb935fc6733ef7b4717535f9786cc997a2b6b8ebc6b87ae",
+      "description": "1-bit Quantization-Aware Trained checkpoint"
+    },
+    "results/phase5_quantization/model_2bit_qat.pt": {
+      "sha256": "e32000dbab59ee24014c01aeacc3d36ca93a6b57964ee55c61f1df4ae90dc514",
+      "description": "2-bit Quantization-Aware Trained checkpoint"
+    },
+    "results/task4_noise_ablation/model_ablated_no_noise.pt": {
+      "sha256": "b0175c8aa4d7012099fbd76661b78834f841c4491cc6656e79077843bb8dec00",
+      "description": "Ablated model without noise floor feature"
+    }
+  },
+  "raw_result_artifacts": {
+    "results/phase3_independent_per_realization.csv": {
+      "sha256": "8b588bcbc28207e13d73319fa164a21f739a31b5784e8ce53e11be4d0716f065",
+      "rows": 500,
+      "description": "Per-realization sum-rate results across 5 noise floors for 500 independent trials"
+    },
+    "results/phase3_independent_summary.csv": {
+      "sha256": "d725e3a4b1acadb131e56c9f4039c1950ae3c5a92bd4ab81b2852cc644270316",
+      "description": "Summary statistics per noise floor for Phase 3"
+    },
+    "results/phase5_quantization/phase5_quantization_per_realization.csv": {
+      "sha256": "84ea76cf4eec7ade2c1ee01564b7fbd47412cb791c453570caf3e173694c04e2",
+      "rows": 500,
+      "description": "Per-realization quantization results across 5 noise floors"
+    },
+    "results/task4_noise_ablation/noise_ablation_per_realization.csv": {
+      "sha256": "8f76903295cbc827e1075851cc4cf98d137230101c5c500aa8bfad3b553429d8",
+      "rows": 500,
+      "description": "Per-realization noise ablation results"
+    },
+    "results/task2_robustness/robustness_summary.csv": {
+      "sha256": "d3423b4c1d30987dd751981948aa22a0c1e19674f1ec4a26722c6f36e761776b",
+      "description": "Summary statistics across 5 channel fading regimes"
+    },
+    "results/task3_generalization/dimension_generalization_summary.json": {
+      "sha256": "94d85adec9b014704a8476b627ad839e488357f934ef8e208987ce02745138de",
+      "description": "Generalization scaling results across M, N, and K"
+    },
+    "results/confirmatory_per_realization.csv": {
+      "sha256": "aa9dd08c2863c4dd5e22705309f3d3b3d2230be4b8e2f4d9f25fdad88cb51cd5",
+      "rows": 500,
+      "description": "Per-realization out-of-sample confirmatory evaluation across 500 virgin test channels"
+    },
+    "results/confirmatory_validation_summary.csv": {
+      "sha256": "519837847a1c56793960cdb909a05b9a2c53b56dd324f2317440ea61a7df935b",
+      "description": "Summary statistics and bootstrap 95% CIs for confirmatory validation"
+    },
+    "results/phase3_independent_per_realization_corrected.csv": {
+      "sha256": "fa3750a8d74f3953d911a6f20756be266a7854978f735dbac3ae9528becedc73",
+      "description": "Artifact: phase3_independent_per_realization_corrected.csv"
+    },
+    "results/phase3_independent_summary_corrected.csv": {
+      "sha256": "489ebdc1c5c7d021a9974cc22b0c3e54abcbecf53657c6633d9e861264cc4737",
+      "description": "Artifact: phase3_independent_summary_corrected.csv"
+    },
+    "results/benchmark_runtime_summary.json": {
+      "sha256": "6e38a89aa561f33780a9c53ec38e99ce057b542a1c848c14968074a69a3bf532",
+      "description": "Artifact: benchmark_runtime_summary.json"
+    },
+    "results/benchmark_runtime_report.md": {
+      "sha256": "ca543845b5b10f21b077641b98fc74dfaaeca71eb3bf5736bbb14c587a791f8c",
+      "description": "Artifact: benchmark_runtime_report.md"
+    },
+    "results/noise_floor_expanded/noise_floor_expanded_per_realization.csv": {
+      "sha256": "0d910cb757c419144e44b307db1b5a3c45f1aed9b2e9f0c8b6a347e82a3947dc",
+      "rows": 1500,
+      "description": "Per-realization evaluation across 15 noise floor levels (-100 to -60 dBm) for 100 shared channel geometries (1,500 total evaluations)"
+    },
+    "results/noise_floor_expanded/noise_floor_expanded_summary.csv": {
+      "sha256": "d32078d6c803ac176d0fff573268be1fa8564c5e53dd7506d52b4422dc29d35c",
+      "description": "Summary statistics (mean, sample std ddof=1, 95% CI) per method and noise floor for the 15-point expansion"
+    },
+    "results/noise_floor_expanded/noise_floor_expanded_comparisons.csv": {
+      "sha256": "6e721f05b3be24c0cadc4d469f4da7046a87965396196a3d633288453062dbcb",
+      "description": "Paired statistical comparisons (mean diff, t-stat, p-value, Holm-Bonferroni significance, Cohen d, win rates) across 15 noise floors"
+    },
+    "results/noise_floor_expanded/fig_noise_floor_expanded_curves.png": {
+      "sha256": "5ce1e00fa533d000e055e50fc9cbc29eaeda8dc9e369cf12a81f036ea1bdf624",
+      "description": "Publication-quality plot of sum-rate vs noise floor across 15 values with 95% confidence bands"
+    },
+    "results/noise_floor_expanded/fig_noise_floor_expanded_gain.png": {
+      "sha256": "044826af1716ab323f58373ecae6beca6862da7981d750cfa3b0185423abd746",
+      "description": "Net sum-rate gain of ML over matched RZF across 15 noise floor levels highlighting the -92.5 dBm crossover"
+    },
+    "results/noise_floor_expanded/EXPANDED_EXPERIMENT_REPORT.md": {
+      "sha256": "847610adee13783ca21d5d211edaac2384ebb72dbaa436fe8560e2edb24f1a49",
+      "description": "Scientific experiment report for the 15-point noise-floor sweep"
+    },
+    "results/run_noise_floor_expansion.py": {
+      "sha256": "d46a6aba76e330f5c65d91de2e1ffaa97215be0705688551059d596c9f33a501",
+      "description": "Automated reproduction script for the 15-point noise-floor expansion sweep"
+    }
+  }
+}

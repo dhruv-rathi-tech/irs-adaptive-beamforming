@@ -85,6 +85,58 @@ def main():
     grad_ok = all(p.grad is not None and torch.isfinite(p.grad).all() for p in model.parameters())
     all_ok &= check("backward pass produces finite gradients on all parameters", grad_ok)
 
+    # 6. Conjugation consistency test:
+    # Row k of H_all_true is H_true(:, k)' * diag(conj(theta)) * G_true.
+    # The cascaded channel is C_k[m, n] = H_true[m, k]^* * G_true[m, n].
+    # Therefore, (conj(theta))^T * C_k must exactly match H_all_true[k, :].
+    c_true_np = np.zeros((B, cfg.K, cfg.M, cfg.N), dtype=np.complex64)
+    for b in range(B):
+        for k in range(cfg.K):
+            c_true_np[b, k] = np.diag(np.conj(H_np[b][:, k])) @ G_np[b]
+    c_true_t = torch.from_numpy(c_true_np).to(torch.complex64)
+
+    # Matched effective channel using production compute_effective_channel
+    H_eff_matched = DeepBeamformingNet.compute_effective_channel(c_true_t, theta_ml)
+    H_all_true_expected = torch.einsum('bmk,bm,bmn->bkn', H_t.conj(), theta_ml.conj(), G_t)
+    all_ok &= check("Production compute_effective_channel matches H_all_true",
+                     torch.allclose(H_eff_matched, H_all_true_expected, atol=1e-5))
+
+    # 8. Analytical Synthetic Channel Regression Test with Known Ground Truth
+    # Single-user (K=1), M=2 elements, N=2 antennas:
+    # h = [1, j]^T  => h^H = [1, -j]
+    # theta = [1, j]^T => theta^* = [1, -j]
+    # G = [[2, 3], [4, 5]]
+    # Physical channel: h^H @ diag(theta^*) @ G = [1, -1] @ [[2, 3], [4, 5]] = [-2, -2]
+    # Cascaded channel C = diag(h^*) @ G = [[2, 3], [-4j, -5j]]
+    # Matched effective channel: (theta^*)^T @ C = 1*[2, 3] + (-j)*[-4j, -5j] = [2, 3] + [-4, -5] = [-2, -2]
+    # Mismatched effective channel: theta^T @ C = 1*[2, 3] + j*[-4j, -5j] = [6, 8]
+    theta_synth = torch.tensor([[1.0 + 0.0j, 0.0 + 1.0j]], dtype=torch.complex64)  # (1, 2)
+    c_synth = torch.tensor([[[[2.0 + 0.0j, 3.0 + 0.0j],
+                              [0.0 - 4.0j, 0.0 - 5.0j]]]], dtype=torch.complex64)  # (1, 1, 2, 2)
+    expected_h_eff = torch.tensor([[[-2.0 + 0.0j, -2.0 + 0.0j]]], dtype=torch.complex64)
+
+    # Test production helper compute_effective_channel directly
+    prod_h_eff = DeepBeamformingNet.compute_effective_channel(c_synth, theta_synth)
+    all_ok &= check("Production compute_effective_channel matches analytical ground truth [-2, -2]",
+                     torch.allclose(prod_h_eff, expected_h_eff, atol=1e-5))
+
+    # Test production construct_beamformer directly
+    synth_net = DeepBeamformingNet(M=2, N=2, K=1, hidden_dim=16, n_blocks=1)
+    p_alloc = torch.tensor([[1.0]], dtype=torch.float32)
+    alpha = torch.tensor([[0.5]], dtype=torch.float32)
+    P_max_synth = 10.0
+    W_ml_synth = synth_net.construct_beamformer(c_synth, theta_synth, p_alloc, alpha, P_max=P_max_synth)
+    expected_W_synth = torch.tensor([[[-np.sqrt(5.0) + 0.0j], [-np.sqrt(5.0) + 0.0j]]], dtype=torch.complex64)
+    all_ok &= check("Production construct_beamformer precoder matches hand-calculated [-sqrt(5), -sqrt(5)]",
+                     torch.allclose(W_ml_synth, expected_W_synth, atol=1e-5))
+
+    # Evaluate precoder against physical channel h_phys = [-2, -2]
+    h_phys = torch.tensor([[[-2.0 + 0.0j, -2.0 + 0.0j]]], dtype=torch.complex64)
+    rx_signal = torch.bmm(h_phys, W_ml_synth)
+    expected_rx = torch.tensor([[[4.0 * np.sqrt(5.0) + 0.0j]]], dtype=torch.complex64)
+    all_ok &= check("Precoder against physical channel achieves coherent sum 4*sqrt(5)",
+                     torch.allclose(rx_signal, expected_rx, atol=1e-5))
+
     print(f"\n{'ALL DEEP BEAMFORMING TESTS PASSED' if all_ok else 'SOME TESTS FAILED'}")
     return all_ok
 

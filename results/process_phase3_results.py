@@ -27,7 +27,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-LOG_PATH = r"C:\Users\HP\.gemini\antigravity-ide\brain\000968b7-964d-44dc-9df1-746c99bef651\.system_generated\tasks\task-228.log"
+LOG_PATH = os.environ.get("PHASE3_LOG_PATH", "results/task-228.log")
 EVAL_DATA_PATH = "results/phase3_eval_data.mat"
 OUT_DIR = "results"
 
@@ -49,7 +49,7 @@ def compute_rand_rzf(records: np.ndarray, sigma_watts: float, P_max: float) -> n
         H_eff = np.zeros((K, N), dtype=complex)
         for k in range(K):
             C_k = C_hat_cell[0, k]
-            H_eff[k, :] = theta_rand @ C_k
+            H_eff[k, :] = np.conj(theta_rand) @ C_k
 
         # RZF
         H_eff_H = H_eff.conj().T

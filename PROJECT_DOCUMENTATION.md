@@ -812,7 +812,7 @@ python -m results.process_independent_500_results
 ## 15. Phase 5 — 1-bit & 2-bit Quantization-Aware IRS Beamforming (Task 1)
 
 ### 15.1 Motivation & Physical Hardware Constraints
-Continuous phase shifters $|\theta_m| = 1$ require fine-grained PIN diodes or varactor diodes that incur substantial power dissipation, circuit non-linearities, and fabrication cost at millimeter-wave frequencies. Realistic commercial IRS surfaces employ discrete phase shifters:
+Continuous phase shifters $|\theta_m| = 1$ require fine-grained PIN diodes or varactor diodes that incur substantial power dissipation, circuit non-linearities, and fabrication cost at millimeter-wave frequencies according to established microwave literature (e.g., Wu & Zhang 2019, Huang et al. 2020). *(Note: Hardware power savings discussed here reflect theoretical circuit complexity motivations from literature; no physical hardware power measurements were performed).* Realistic commercial IRS surfaces employ discrete phase shifters:
 * **1-bit IRS ($B=1$):** Discrete alphabet $\Phi_1 = \{0, \pi\}$, reflection coefficients $\theta_m \in \{+1, -1\}$.
 * **2-bit IRS ($B=2$):** Discrete alphabet $\Phi_2 = \{0, \pi/2, \pi, 3\pi/2\}$, reflection coefficients $\theta_m \in \{+1, +j, -1, -j\}$.
 
@@ -828,22 +828,22 @@ Evaluated across all 5 noise floors on identical held-out channels (`results/pha
 
 | Noise Floor (dBm) | $N$ | Continuous ML (bps/Hz) | 1-bit PTQ (bps/Hz) | 1-bit QAT (bps/Hz) | 1-bit QAT Gain | 2-bit PTQ (bps/Hz) | 2-bit QAT (bps/Hz) | 2-bit QAT Gain | 1-bit Random RZF |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **−100.0** | 100 | 22.16 ± 2.85 | 21.10 ± 2.86 | 21.28 ± 2.87 | +0.18 bps/Hz | 21.86 ± 2.86 | 21.71 ± 2.88 | −0.15 bps/Hz | 31.65 ± 5.92 |
-| **−90.0**  | 100 | 22.22 ± 2.85 | 21.16 ± 2.86 | 21.32 ± 2.87 | +0.16 bps/Hz | 21.96 ± 2.85 | 21.79 ± 2.88 | −0.16 bps/Hz | 20.79 ± 4.88 |
-| **−85.0**  | 100 | 21.96 ± 3.04 | 20.99 ± 3.05 | 21.17 ± 3.06 | +0.18 bps/Hz | 21.72 ± 3.05 | 21.55 ± 3.07 | −0.18 bps/Hz | 13.93 ± 4.12 |
-| **−80.0**  | 100 | 21.91 ± 3.58 | 20.97 ± 3.61 | 20.53 ± 3.84 | −0.44 bps/Hz | 21.62 ± 3.59 | 20.81 ± 3.88 | −0.81 bps/Hz | 11.21 ± 3.45 |
-| **−70.0**  | 100 | 18.69 ± 4.92 | 18.02 ± 4.87 | 18.00 ± 4.87 | −0.01 bps/Hz | 18.67 ± 4.88 | 20.54 ± 4.60 | **+1.87 bps/Hz** | 5.02 ± 2.15 |
+| **−100.0** | 100 | 22.16 ± 2.85 | 21.10 ± 2.89 | 21.28 ± 2.60 | +0.18 bps/Hz | 21.86 ± 2.85 | 21.71 ± 3.01 | −0.15 bps/Hz | 31.65 ± 5.92 |
+| **−90.0**  | 100 | 22.22 ± 2.85 | 21.16 ± 2.84 | 21.32 ± 2.61 | +0.16 bps/Hz | 21.96 ± 2.80 | 21.79 ± 2.78 | −0.16 bps/Hz | 20.79 ± 4.88 |
+| **−85.0**  | 100 | 21.96 ± 3.04 | 20.99 ± 2.90 | 21.17 ± 2.70 | +0.18 bps/Hz | 21.72 ± 2.98 | 21.55 ± 3.21 | −0.18 bps/Hz | 13.93 ± 4.12 |
+| **−80.0**  | 100 | 21.91 ± 3.58 | 20.97 ± 3.50 | 20.53 ± 3.27 | −0.44 bps/Hz | 21.62 ± 3.52 | 20.81 ± 3.77 | −0.81 bps/Hz | 11.21 ± 3.45 |
+| **−70.0**  | 100 | 18.69 ± 4.92 | 18.02 ± 4.64 | 18.00 ± 4.85 | −0.01 bps/Hz | 18.67 ± 4.73 | 20.54 ± 4.20 | **+1.87 bps/Hz** | 5.02 ± 2.15 |
 
 ### 15.4 Physical Investigation: Random Baseline at -100 dBm vs -70 dBm
-A key physical observation in the evaluation is that Random 1-bit RZF achieves **31.65 bps/Hz at −100 dBm**, but collapses to **5.02 bps/Hz at −70 dBm**:
+A key physical observation in the evaluation is that Random RZF achieves **30.34 bps/Hz at −100 dBm**, but collapses to **4.88 bps/Hz at −70 dBm**:
 1. **Near-Perfect Channel Estimation at High Pilot SNR (−100 dBm):**
-   At a −100 dBm noise floor, the pilot SNR exceeds +45 dB, meaning the multi-phase Least Squares estimate is virtually noise-free ($\hat{C}_{\text{LS}} \approx C_{\text{true}}$). The Base Station possesses $N=8$ antennas serving $K=4$ users. With near-perfect channel state information, the active Regularized Zero-Forcing (RZF) precoder computes $W \propto \hat{H}_{\text{eff}}^H (\hat{H}_{\text{eff}} \hat{H}_{\text{eff}}^H + \alpha I)^{-1}$ with high precision, canceling multi-user inter-cell interference almost completely. Even though the random IRS phase configurations do not co-phase reflections constructively, the stationary spatial scattering provided by the IRS combined with near-perfect BS zero-forcing yields $\approx 7.9$ bps/Hz per user ($31.65$ bps/Hz total).
+   At a −100 dBm noise floor, the pilot SNR exceeds +45 dB, meaning the multi-phase Least Squares estimate is virtually noise-free ($\hat{C}_{\text{LS}} \approx C_{\text{true}}$). The Base Station possesses $N=8$ antennas serving $K=4$ users. With near-perfect channel state information, the active Regularized Zero-Forcing (RZF) precoder computes $W \propto \hat{H}_{\text{eff}}^H (\hat{H}_{\text{eff}} \hat{H}_{\text{eff}}^H + \alpha I)^{-1}$ with high precision, canceling intra-cell multi-user interference almost completely. Even though the random IRS phase configurations do not co-phase reflections constructively, the stationary spatial scattering provided by the IRS combined with near-perfect BS zero-forcing yields $\approx 7.58$ bps/Hz per user ($30.34$ bps/Hz total).
 2. **Noise Collapse at Low Pilot SNR (−70 dBm):**
-   At a −70 dBm noise floor, pilot SNR drops by 30 dB and $\hat{C}_{\text{LS}}$ estimation error variance rises sharply ($\text{NMSE} \approx 0.95$). Attempting classical matrix inversion on corrupted channels causes severe beam pointing errors; the BS inverts estimation noise rather than physical channels, destroying multi-user interference cancellation and collapsing Random RZF sum-rate to **5.02 bps/Hz**.
+   At a −70 dBm noise floor, pilot SNR drops by 30 dB and $\hat{C}_{\text{LS}}$ estimation error variance rises sharply ($\text{NMSE} \approx 0.95$). Attempting classical matrix inversion on corrupted channels causes severe beam pointing errors; the BS inverts estimation noise rather than physical channels, destroying multi-user interference cancellation and collapsing Random RZF sum-rate to **4.88 bps/Hz**.
 3. **Deep Learning Operating Trade-Off:**
-   `DeepBeamformingNet` was trained directly on true achievable sum-rate over a mixed noise sweep (−100 to −70 dBm). It learns a robust, non-linear regularized mapping that does not overfit to matrix inversion. Consequently, at −70 dBm, the network preserves **18.69 bps/Hz** (nearly $4\times$ higher than Random RZF at 5.02 bps/Hz and classical LS $\to$ AO at 3.76 bps/Hz), but trades off peak interference cancellation at −100 dBm (achieving 22.16 bps/Hz vs 31.65 bps/Hz).
+   `DeepBeamformingNet` was trained directly on true achievable sum-rate over a mixed noise sweep (−100 to −70 dBm). It learns a robust, non-linear regularized mapping with learned damping and power allocation that avoids iterative alternating optimization. Consequently, at −70 dBm, the network preserves **20.14 bps/Hz** (over $4\times$ higher than Random RZF at 4.88 bps/Hz and classical LS $\to$ AO at 3.76 bps/Hz), but trades off peak interference cancellation at −100 dBm (achieving 22.58 bps/Hz vs 30.34 bps/Hz).
 4. **Phase Conjugation Consistency:**
-   Note that because the effective channel is formed as $H_{\text{true}} = H^H \operatorname{diag}(\theta^*) G$, evaluating continuous and 2-bit random baselines with matching complex conjugation $\theta^*$ yields consistent high rates at −100 dBm (38.8–39.2 bps/Hz) and severe degradation at −70 dBm, confirming that this behavior is physically dictated by the pilot estimation SNR and active BS degrees of freedom.
+   Note that because the effective channel is formed as $H_{\text{true}} = H^H \operatorname{diag}(\theta^*) G$, evaluating continuous and discrete random baselines with matching complex conjugation $\theta^*$ yields consistent high rates at −100 dBm (30.34 bps/Hz) and severe degradation at −70 dBm, confirming that this behavior is physically dictated by the pilot estimation SNR and active BS degrees of freedom.
 
 ### 15.5 Key Scientific Findings
 1. **2-bit IRS Retains 99.5% Performance:** 2-bit QAT achieves **21.28 bps/Hz** overall (vs 21.39 bps/Hz continuous), suffering only a **0.11 bps/Hz (-0.5%)** degradation while drastically reducing RF phase-shifter complexity.
@@ -861,21 +861,23 @@ Evaluates whether `DeepBeamformingNet` generalizes when underlying propagation d
 * **BS–IRS Path-Loss Exponent ($\alpha_{\text{BI}}$):** Tested from free-space propagation ($\alpha=2.0$) to default ($\alpha=2.2$) and heavily cluttered urban propagation ($\alpha=2.8$).
 
 ### 16.2 Empirical Results (100 Realizations per Setting, Seeds 300,000–300,099)
-Derived from `results/task2_robustness/robustness_summary.csv`:
+Derived from `results/task2_robustness/robustness_summary.csv` (using the mathematically corrected matched RZF baseline):
 
-| Channel Fading Setting | Physical Propagation Regime | Random RZF Baseline | Zero-Shot Transfer (Frozen Model) | Retrained Model | Retrained vs Zero-Shot Gain |
-|---|---|:---:|:---:|:---:|:---:|
-| **Default Reference** | $K_{\text{rice}}=10.0, \alpha_{\text{BI}}=2.2$ (Typical Near-LOS) | 1.97 bps/Hz | **21.70 ± 2.56** | **21.88 ± 3.35** | +0.18 bps/Hz ($p=0.67$) |
-| **Weak LOS / Scattering** | $K_{\text{rice}}=2.0, \alpha_{\text{BI}}=2.2$ (Partial Obstruction) | 1.92 bps/Hz | **20.58 ± 2.63** | 17.81 ± 3.70 | **−2.77 bps/Hz** ($p=1.38 \times 10^{-23}$) |
-| **Pure Rayleigh NLOS** | $K_{\text{rice}}=0.0, \alpha_{\text{BI}}=2.2$ (Total LOS Blockage) | 1.87 bps/Hz | **17.22 ± 2.71** | 16.55 ± 2.48 | **−0.67 bps/Hz** ($p=0.079$) |
-| **Strong Direct LOS** | $K_{\text{rice}}=20.0, \alpha_{\text{BI}}=2.0$ (Free Space / Elevated BS) | 1.96 bps/Hz | **23.11 ± 2.44** | **23.59 ± 3.06** | +0.48 bps/Hz ($p=0.23$) |
-| **High Clutter / Path Loss** | $K_{\text{rice}}=10.0, \alpha_{\text{BI}}=2.8$ (Severe Attenuation) | 2.17 bps/Hz | **17.00 ± 3.72** | **17.21 ± 4.53** | +0.21 bps/Hz ($p=0.71$) |
+| Channel Fading Setting | Physical Propagation Regime | Matched Random RZF | Zero-Shot Transfer (Frozen Model) | Retrained Model | Zero-Shot Win Rate vs RZF | $p$-value (Retrained vs ZS) |
+|---|---|:---:|:---:|:---:|:---:|:---:|
+| **Default Reference** | $K_{\text{rice}}=10.0, \alpha_{\text{BI}}=2.2$ (Typical Near-LOS) | 14.95 ± 3.42 | **21.70 ± 2.56** | 21.43 ± 2.78 | **83.0% (83/100)** | $p=0.0005$ |
+| **Weak LOS / Scattering** | $K_{\text{rice}}=2.0, \alpha_{\text{BI}}=2.2$ (Partial Obstruction) | 20.65 ± 4.54 | **20.58 ± 2.63** | 16.61 ± 3.58 | 49.0% (49/100) | $p=4.32 \times 10^{-14}$ |
+| **Pure Rayleigh NLOS** | $K_{\text{rice}}=0.0, \alpha_{\text{BI}}=2.2$ (Total LOS Blockage) | **24.72 ± 4.88** | 17.22 ± 2.71 | 16.53 ± 2.37 | 19.0% (19/100) | $p=0.067$ |
+| **Strong Direct LOS** | $K_{\text{rice}}=20.0, \alpha_{\text{BI}}=2.0$ (Free Space / Elevated BS) | 15.56 ± 3.52 | **23.11 ± 2.44** | 22.98 ± 2.74 | **83.0% (83/100)** | $p=0.72$ |
+| **High Clutter / Path Loss** | $K_{\text{rice}}=10.0, \alpha_{\text{BI}}=2.8$ (Severe Attenuation) | 7.25 ± 2.49 | **17.00 ± 3.72** | **17.16 ± 4.52** | **96.0% (96/100)** | $p=0.78$ |
 
-### 16.3 Scientific Conclusions & Analysis of Retraining
-* **Strong Zero-Shot Generalization:** The frozen continuous model achieves **17.00 to 23.11 bps/Hz** across all tested channel distributions without retraining, consistently outperforming the Random RZF baseline by **8.0× to 11.8×**.
-* **Why Retraining Performs Worse in Weak-LOS and Rayleigh Cases:**
-  In rich-scattering and pure Rayleigh environments ($K=2.0$ and $K=0.0$), the channel possesses high spatial entropy without a dominant rank-1 line-of-sight steering vector. Training a new model from scratch with a small dataset (200 realizations) is data-starved and prone to undertraining under high spatial variance. In contrast, the original frozen model was trained across 300 realizations over a wide multi-noise sweep, acquiring regularized spatial representations that transfer **zero-shot** far more effectively.
-* **Practical Recommendation:** Retraining should **not** be presented as beneficial where empirical evidence proves otherwise. Zero-shot transfer is both computationally superior (0 retraining overhead) and delivers equal or higher sum-rates across all non-LOS regimes.
+### 16.3 Scientific Conclusions & Operating Boundaries
+* **Operating Regime Boundary in Pure Rayleigh Fading ($K=0$):**
+  When line-of-sight to the IRS is completely blocked (pure Rayleigh fading), the channel exhibits isotropic spatial scattering. Because the Base Station possesses $N=8$ antennas serving $K=4$ users ($N/K=2$), the BS has excess spatial degrees of freedom to perform multi-user zero-forcing directly, achieving **24.72 bps/Hz** even with random IRS reflections. Zero-shot ML (which was trained on directional Rician channels with $K=10$) delivers **17.22 bps/Hz**. This establishes an explicit physical boundary: **deep beamforming optimization is specifically advantageous in directional and path-loss-constrained propagation environments**.
+* **Dominance in Directional and High-Attenuation Regimes:**
+  In strong LOS ($K=20$) and default near-LOS ($K=10$), directional beam steering through the IRS is essential; Zero-Shot ML outperforms the matched random baseline by **+7.55 bps/Hz** and **+6.75 bps/Hz** (83% win rate). Under severe clutter and path loss ($\alpha=2.8$), where passive signal recovery is challenging, ML wins **96.0% of trials** (+9.75 bps/Hz over random RZF).
+* **Retraining Analysis:**
+  Retraining with 200 realizations in rich-scattering and weak-LOS regimes yields lower performance (16.61 vs 20.58 bps/Hz) due to high spatial variance and small-sample undertraining. The frozen model's multi-noise training creates regularized features that generalize robustly zero-shot without adaptation overhead.
 
 ---
 
@@ -896,22 +898,22 @@ Derived from `results/task2_robustness/robustness_summary.csv`:
 ### 17.3 Dimension Scaling Results (`results/task3_generalization/dimension_generalization_summary.json`)
 
 #### A. Surface Scaling ($M \in \{32, 64, 128\}$ with $N=8, K=4$)
-* **$M = 32$ Elements:** Random RZF = 1.95 | Zero-Shot = **19.36 bps/Hz** | Retrained = **19.32 bps/Hz**
-* **$M = 64$ Elements:** Random RZF = 2.15 | Zero-Shot = **21.46 bps/Hz** | Retrained = **21.46 bps/Hz**
-* **$M = 128$ Elements:** Random RZF = 2.02 | Zero-Shot = **23.87 bps/Hz** | Retrained = **23.30 bps/Hz**
-* **Finding:** Zero-shot generalization matches or exceeds retrained performance ($19.36 \to 21.46 \to 23.87$ bps/Hz), confirming that the element-equivariant architecture transfers across surface sizes without fine-tuning.
+* **$M = 32$ Elements:** Matched Random RZF = 13.47 | Zero-Shot = **19.36 bps/Hz** | Retrained = **19.23 bps/Hz**
+* **$M = 64$ Elements:** Matched Random RZF = 13.61 | Zero-Shot = **21.46 bps/Hz** | Retrained = **21.46 bps/Hz**
+* **$M = 128$ Elements:** Matched Random RZF = 13.44 | Zero-Shot = **23.87 bps/Hz** | Retrained = **23.25 bps/Hz**
+* **Finding:** Zero-shot generalization matches or exceeds retrained performance ($19.36 \to 21.46 \to 23.87$ bps/Hz), confirming that the element-equivariant architecture transfers across surface sizes without fine-tuning. ML outperforms matched Random RZF by $+5.89$ to $+10.43$ bps/Hz across all surface sizes.
 
 #### B. Base Station Antennas ($N \in \{4, 8, 16\}$ with $M=64, K=4$)
-* **$N = 4$ Antennas:** Random RZF = 1.76 | Deep ML = **21.34 bps/Hz** | Per-Antenna SE = **5.33 bps/Hz/ant**
-* **$N = 8$ Antennas:** Random RZF = 2.02 | Deep ML = **22.37 bps/Hz** | Per-Antenna SE = **2.80 bps/Hz/ant**
-* **$N = 16$ Antennas:** Random RZF = 2.07 | Deep ML = **22.30 bps/Hz** | Per-Antenna SE = **1.39 bps/Hz/ant**
-* **Finding:** Increasing BS antennas from $N=4$ to $N=8$ provides sharper spatial interference nulling, saturating around $22.3$ bps/Hz as performance becomes bounded by the $K=4$ user channels and total transmit power $P_{\max}=10$ W.
+* **$N = 4$ Antennas:** Matched Random RZF = 11.12 | Deep ML = **21.17 bps/Hz** | Per-Antenna SE = **5.29 bps/Hz/ant**
+* **$N = 8$ Antennas:** Matched Random RZF = 13.84 | Deep ML = **22.37 bps/Hz** | Per-Antenna SE = **2.80 bps/Hz/ant**
+* **$N = 16$ Antennas:** Matched Random RZF = 15.14 | Deep ML = **22.35 bps/Hz** | Per-Antenna SE = **1.40 bps/Hz/ant**
+* **Finding:** Increasing BS antennas from $N=4$ to $N=8$ provides sharper spatial interference nulling, saturating around $22.35$ bps/Hz as performance becomes bounded by the $K=4$ user channels and total transmit power $P_{\max}=10$ W.
 
 #### C. User Load ($K \in \{2, 4, 8\}$ with $M=64, N=8$)
-* **$K = 2$ Users:** Random RZF = 3.55 | Deep ML = **21.91 bps/Hz** | Per-User SE = **10.95 bps/Hz/user**
-* **$K = 4$ Users:** Random RZF = 2.15 | Deep ML = **22.01 bps/Hz** | Per-User SE = **5.50 bps/Hz/user**
-* **$K = 8$ Users:** Random RZF = 1.61 | Deep ML = **21.76 bps/Hz** | Per-User SE = **2.72 bps/Hz/user**
-* **Finding:** Total sum-rate remains remarkably constant ($\approx 21.8 - 22.0$ bps/Hz) under fixed total power $P_{\max}=10$ W, with individual per-user rates dividing equitably ($10.95 \to 5.50 \to 2.72$ bps/Hz/user).
+* **$K = 2$ Users:** Matched Random RZF = 11.75 | Deep ML = **21.98 bps/Hz** | Per-User SE = **10.99 bps/Hz/user**
+* **$K = 4$ Users:** Matched Random RZF = 15.02 | Deep ML = **22.01 bps/Hz** | Per-User SE = **5.50 bps/Hz/user**
+* **$K = 8$ Users:** Matched Random RZF = 11.10 | Deep ML = **21.18 bps/Hz** | Per-User SE = **2.65 bps/Hz/user**
+* **Finding:** Total sum-rate remains remarkably constant ($\approx 21.2 - 22.0$ bps/Hz) under fixed total power $P_{\max}=10$ W, with individual per-user rates dividing equitably ($10.99 \to 5.50 \to 2.65$ bps/Hz/user). ML consistently outperforms Random RZF by $+6.99$ to $+10.23$ bps/Hz.
 
 ---
 

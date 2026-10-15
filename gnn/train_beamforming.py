@@ -58,7 +58,7 @@ def compute_baseline_rzf_rates(loader: DataLoader, sigma_watts: float, P_max: fl
         theta_rand = torch.from_numpy(np.exp(1j * rand_angles)).to(torch.complex64)
 
         # Standard RZF from C_hat_LS
-        H_eff = torch.einsum("bm,bkmn->bkn", theta_rand, c_hat_ls)
+        H_eff = torch.einsum("bm,bkmn->bkn", theta_rand.conj(), c_hat_ls)
         H_eff_H = H_eff.conj().transpose(-2, -1)
         G_eff = torch.bmm(H_eff, H_eff_H)
         I_K = torch.eye(K, dtype=torch.complex64).unsqueeze(0).expand(B, K, K)
