@@ -296,16 +296,16 @@ python -m gnn.train_and_eval_noise_ablation
 
 ---
 
-### 5. High-Resolution 15-Point Noise-Floor Sweep
-* **Evaluation Grid:** 15 noise floor levels from -100.0 dBm to -60.0 dBm (=100$ per tier, 1,500 total realizations).
-* **Operating Regime Crossover:** Identified at **-92.5 dBm**, where ML achieves .64 \pm 2.77$ bps/Hz vs Matched RZF .40 \pm 8.49$ bps/Hz ($+0.23$ bps/Hz gain, 52% wins).
-* **High Noise Dominance:** At -60.0 dBm, classical RZF degrades to .70 \pm 1.31$ bps/Hz while ML achieves .42 \pm 5.49$ bps/Hz (**+14.72 bps/Hz gain**, 100% win rate,  = 6.55 	imes 10^{-50}$).
-* **Quantization Robustness:** 2-bit QAT maintains $\ge 92.6\%$ and 1-bit QAT maintains $\ge 91.4\%$ of continuous rate even in severe noise.
+### 5. High-Resolution 15-Point Pilot Noise-Floor Sweep (Fixed Data Noise)
+* **Experiment Protocol:** 15 pilot estimation noise levels from -100.0 dBm to -60.0 dBm ($N=100$ per tier, 1,500 total evaluations) under fixed data-channel noise ($\sigma_{\text{data}}^2 \approx -85\text{ dBm}$) to isolate channel-estimation degradation from data detection SNR.
+* **Transition Region & Near-Equality Point:** Statistical near-equality between Deep ML and Matched Random RZF occurs at **-92.5 dBm**, where ML achieves $22.64 \pm 2.77$ bps/Hz vs. Matched RZF $22.40 \pm 8.49$ bps/Hz ($+0.235$ bps/Hz diff, $p = 0.765$, 52% wins, statistically indistinguishable). The regime transition spans the interval between $-95.0$ and $-90.0$ dBm rather than a knife-edge threshold.
+* **Severe Pilot Contamination Limit:** Under heavy pilot noise at -60.0 dBm (with data noise at -85 dBm), classical RZF matrix inversion degrades to $2.70 \pm 1.31$ bps/Hz due to noise inversion, while Deep ML preserves $17.42 \pm 5.49$ bps/Hz (**+14.73 bps/Hz gain**, 100% win rate, $p = 6.55 \times 10^{-50}$).
+* **Quantization Robustness:** 2-bit QAT maintains $\ge 92.6\%$ ($16.13$ bps/Hz at -60 dBm) and 1-bit QAT maintains $\ge 91.4\%$ ($15.93$ bps/Hz at -60 dBm) of continuous sum-rate.
 
 Reproduce:
-`ash
+```bash
 python -m results.run_noise_floor_expansion
-`
+```
 
 ---
 

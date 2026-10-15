@@ -144,9 +144,9 @@ python -m results.generate_phase3_corrected_baselines
 
 ---
 
-## 10. Expanded 15-Point Noise-Floor Sweep (1,500 Realizations)
+## 10. Expanded 15-Point Pilot Noise-Floor Sweep under Fixed Data-Channel Noise (1,500 Realizations)
 
-Executes the fine-grained noise sweep across 15 values (`-100` to `-60` dBm):
+Executes the fine-grained pilot estimation noise sweep across 15 values (`-100` to `-60` dBm) under fixed data-channel noise ($\sigma_{\text{data}}^2 \approx -85\text{ dBm}$):
 
 ```bash
 python -m results.run_noise_floor_expansion

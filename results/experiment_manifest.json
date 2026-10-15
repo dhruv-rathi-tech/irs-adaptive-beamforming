@@ -188,20 +188,20 @@
       "description": "Paired statistical comparisons (mean diff, t-stat, p-value, Holm-Bonferroni significance, Cohen d, win rates) across 15 noise floors"
     },
     "results/noise_floor_expanded/fig_noise_floor_expanded_curves.png": {
-      "sha256": "5ce1e00fa533d000e055e50fc9cbc29eaeda8dc9e369cf12a81f036ea1bdf624",
-      "description": "Publication-quality plot of sum-rate vs noise floor across 15 values with 95% confidence bands"
+      "sha256": "66a54b17e65b2d970cf85b8e27a4801df097612162d564ffb59fc71397a43e96",
+      "description": "Publication-quality plot of sum-rate vs pilot noise floor across 15 values with fixed data noise and transition region annotation"
     },
     "results/noise_floor_expanded/fig_noise_floor_expanded_gain.png": {
-      "sha256": "044826af1716ab323f58373ecae6beca6862da7981d750cfa3b0185423abd746",
-      "description": "Net sum-rate gain of ML over matched RZF across 15 noise floor levels highlighting the -92.5 dBm crossover"
+      "sha256": "baafc054400216e08e3f446d034bae751a158450f902eac888d423f702d41dc6",
+      "description": "Net sum-rate gain of ML over matched RZF across 15 pilot noise levels highlighting the near-equality point at -92.5 dBm"
     },
     "results/noise_floor_expanded/EXPANDED_EXPERIMENT_REPORT.md": {
-      "sha256": "847610adee13783ca21d5d211edaac2384ebb72dbaa436fe8560e2edb24f1a49",
-      "description": "Scientific experiment report for the 15-point noise-floor sweep"
+      "sha256": "c20189add53d0b0e79749a9358028f789c91bc0c287d57f7c3be033f8d5527bb",
+      "description": "Scientific experiment report for the 15-point pilot noise-floor sweep under fixed data-channel noise"
     },
     "results/run_noise_floor_expansion.py": {
-      "sha256": "d46a6aba76e330f5c65d91de2e1ffaa97215be0705688551059d596c9f33a501",
-      "description": "Automated reproduction script for the 15-point noise-floor expansion sweep"
+      "sha256": "576ce99e5cdf2c6115e46c8d729985e409b343ef46f8e05c62e743c12b5d3122",
+      "description": "Automated reproduction script for the 15-point pilot noise-floor sweep"
     }
   }
 }

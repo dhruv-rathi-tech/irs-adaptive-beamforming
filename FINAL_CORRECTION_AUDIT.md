@@ -12,7 +12,7 @@
 Following a targeted scientific correction and reproducibility audit, all remaining discrepancies in statistical reporting, phase-convention regression testing, table labeling, and experimental provenance have been resolved. The core deep learning beamforming model (DeepBeamformingNet) and its production precoder synthesis methods have been rigorously verified through enhanced analytical regression and mutation tests. 
 
 All numerical reporting across the revised research manuscript (
-esults/manuscript_draft.md), CLAIMS_EVIDENCE_MATRIX.md, README.md, and 
+| `CLAIMS_EVIDENCE_MATRIX.md` | `200d095b2df79014aec89cad1c2fd783b4a553cc49e0c422e4ef8a6975b4c1e5` | Authoritative claims-to-evidence matrix with CLM-11 |
 esults/experiment_manifest.json is 100% synchronized with the raw per-realization CSV artifacts. Every statistical comparison is explicitly identified with sample size, test statistic, degrees of freedom, and exact p-values.
 
 ---
@@ -29,7 +29,7 @@ esults/confirmatory_per_realization.csv ( = 500$ realizations, 0 missing rows, v
     - **Matched Random RZF:** Mean = **15.9155 bps/Hz**, Sample Standard Deviation ($, =1$) = **11.2453 bps/Hz** (population $\sigma$ = .2340$ bps/Hz, median: **13.97 bps/Hz**).
     - **Paired Difference (ML - RZF):** Mean = **+5.6991 bps/Hz**, Sample Standard Deviation = **10.3282 bps/Hz**, 95% Bootstrap CI: **[+4.8124, +6.5554] bps/Hz**.
     - **Paired Hypothesis Tests:** Paired $-test  = 12.3486, df = 499$, unrounded  = 1.031533 \times 10^{-30}$; Wilcoxon signed-rank test  = 12788.0, p = 4.200642 \times 10^{-28}$; Win rate: **73.2% (366/500)**.
-* **Synchronization:** Updated manuscript Sec. IV-E, CLAIMS_EVIDENCE_MATRIX.md (CLM-05), and all summary tables to report exact sample standard deviations: **21.61 ± 3.63 bps/Hz** vs. **15.92 ± 11.25 bps/Hz**.
+| `CLAIMS_EVIDENCE_MATRIX.md` | `200d095b2df79014aec89cad1c2fd783b4a553cc49e0c422e4ef8a6975b4c1e5` | Authoritative claims-to-evidence matrix with CLM-11 |
 
 ---
 
@@ -57,7 +57,7 @@ esults/phase3_independent_per_realization_corrected.csv ( = 500$ independent rea
      - Wilcoxon Signed-Rank Test:  = 25393.0, p = 1.062791 \times 10^{-30}$
      - Win Count: **367 / 500 (73.4%)**
 * **Synchronization & Disambiguation:**
-  - Manuscript Abstract, Section IV-C, Table I, and CLAIMS_EVIDENCE_MATRIX.md (CLM-01) now report both exact test statistics and $-values.
+| `CLAIMS_EVIDENCE_MATRIX.md` | `200d095b2df79014aec89cad1c2fd783b4a553cc49e0c422e4ef8a6975b4c1e5` | Authoritative claims-to-evidence matrix with CLM-11 |
   - Table I has been redesigned with explicit dual columns:
     Gain vs. AO, Win Rate vs. AO, p-val (ML vs. AO) alongside Gain vs. RZF, Win Rate vs. RZF, p-val (ML vs. RZF).
 
@@ -109,17 +109,17 @@ esults/phase3_independent_per_realization_corrected.csv ( = 500$ independent rea
 
 ## 3. Cryptographic Hashes of Final Evidence Artifacts
 
-All critical repository artifacts have been hashed with SHA-256 and synchronized in `results/experiment_manifest.json`:
+| `results/experiment_manifest.json` | `84f95e252e2d6e6d3abd88b4cdf29f8e4f290fe46eb1cef9f663d999dc975f1a` | Updated cryptographic manifest of all repository artifacts |
 
 | File Path | SHA-256 Checksum | Description |
 |---|---|---|
 | `results/gnn/best_beamforming_model.pt` | `25c75f469f9eafb2d49308d4498546d7d76f611e2713260318a2d29ddd31c517` | Primary retrained model checkpoint with corrected phase conjugation |
 | `gnn/beamforming_model.py` | `763611485173b8b482ae0471423300d13a9ddad709a0b2c8c0444c65b73acf23` | Production model source code with compute_effective_channel helper |
 | `tests/test_deep_beamforming.py` | `43b4894375ba67e937514b46a4bb571db97c9c4bfd31ebc293abb2f1f6058404` | Strengthened unit and analytical regression tests |
-| `results/manuscript_draft.md` | `cd2dac0e67b6146070f224ab6deaa1678b881546c69218a9d3fb739497781bdd` | Final revised research manuscript draft with verified statistics & Task 5 |
-| `CLAIMS_EVIDENCE_MATRIX.md` | `3c085db2de3b4b93ef4867859de809ebc5a091e6adf453e39eef52fdef651074` | Authoritative claims-to-evidence matrix with CLM-11 |
-| `README.md` | `330cf39e17f78fc53398f998537ec3a9b47434a23a6547fb688c454e7e2f9cc7` | Top-level repository overview and quickstart guide |
-| `results/reproduction_guide.md` | `bc6a7473b76adfb5c33ce03709a3a6bc7943ac9395471508516dedcdfec058f8` | Step-by-step reproduction instructions including Section 10 |
+| `results/manuscript_draft.md` | `6ca47880199d31fcf2d0782d03cf5e8b2061c0a6c056c943c94ee3c9750bad11` | Final revised research manuscript draft with verified statistics & Task 5 |
+| `CLAIMS_EVIDENCE_MATRIX.md` | `200d095b2df79014aec89cad1c2fd783b4a553cc49e0c422e4ef8a6975b4c1e5` | Authoritative claims-to-evidence matrix with CLM-11 |
+| `README.md` | `993f8775e97999f1938072eb71291c8efbf533cc1f09b4df2accd7619ad90d3e` | Top-level repository overview and quickstart guide |
+| `results/reproduction_guide.md` | `01653df3e96c61960fccb86a1e851cd528421fa248358cb7141e89c4593129c9` | Step-by-step reproduction instructions including Section 10 |
 | `results/phase3_independent_summary_corrected.csv` | `489ebdc1c5c7d021a9974cc22b0c3e54abcbecf53657c6633d9e861264cc4737` | Summary statistics of Phase 3 evaluation across 500 test channels |
 | `results/phase3_independent_per_realization_corrected.csv` | `fa3750a8d74f3953d911a6f20756be266a7854978f735dbac3ae9528becedc73` | Per-realization sum-rate data across 500 test channels |
 | `results/confirmatory_validation_summary.csv` | `519837847a1c56793960cdb909a05b9a2c53b56dd324f2317440ea61a7df935b` | Summary statistics of confirmatory evaluation across 500 virgin test channels |
@@ -129,8 +129,8 @@ All critical repository artifacts have been hashed with SHA-256 and synchronized
 | `results/noise_floor_expanded/noise_floor_expanded_per_realization.csv` | `0d910cb757c419144e44b307db1b5a3c45f1aed9b2e9f0c8b6a347e82a3947dc` | 1,500 evaluations across 15 noise floor levels (-100 to -60 dBm) |
 | `results/noise_floor_expanded/noise_floor_expanded_summary.csv` | `d32078d6c803ac176d0fff573268be1fa8564c5e53dd7506d52b4422dc29d35c` | Summary statistics for 15-point noise-floor sweep |
 | `results/noise_floor_expanded/noise_floor_expanded_comparisons.csv` | `6e721f05b3be24c0cadc4d469f4da7046a87965396196a3d633288453062dbcb` | Paired statistical comparisons and effect sizes for 15 noise floors |
-| `results/noise_floor_expanded/EXPANDED_EXPERIMENT_REPORT.md` | `847610adee13783ca21d5d211edaac2384ebb72dbaa436fe8560e2edb24f1a49` | Detailed technical report of the 15-point noise floor sweep |
-| `results/experiment_manifest.json` | `cad21084af1e46d3b287afe63665d3a9e9e4eb4f2fddd5fd607cf88823df6ca5` | Updated cryptographic manifest of all repository artifacts |
+| `results/noise_floor_expanded/EXPANDED_EXPERIMENT_REPORT.md` | `c20189add53d0b0e79749a9358028f789c91bc0c287d57f7c3be033f8d5527bb` | Detailed technical report of the 15-point pilot noise floor sweep |
+| `results/experiment_manifest.json` | `84f95e252e2d6e6d3abd88b4cdf29f8e4f290fe46eb1cef9f663d999dc975f1a` | Updated cryptographic manifest of all repository artifacts |
 
 ---
 

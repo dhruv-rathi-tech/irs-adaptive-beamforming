@@ -1,8 +1,13 @@
 """
-Expanded Noise-Floor Sweep Experiment (15 Noise Levels).
+Pilot Noise-Floor Sweep Experiment (15 Pilot Noise Levels under Fixed Data-Channel Noise).
 
-Evaluates 15 noise-floor values in dBm:
+Evaluates 15 pilot estimation noise-floor values in dBm:
 [-100.0, -97.5, -95.0, -92.5, -90.0, -87.5, -85.0, -82.5, -80.0, -77.5, -75.0, -72.5, -70.0, -65.0, -60.0]
+during multi-phase Least-Squares cascaded channel estimation.
+
+Data-channel noise variance is held fixed at sigma^2_data = 3.16e-12 W (~ -85 dBm)
+during the true-channel achievable sum-rate evaluation across all methods to cleanly isolate
+pilot channel-estimation error from data detection SNR.
 
 Methods Evaluated:
   1. DeepBeamformingNet (Continuous ML, best_beamforming_model.pt)
@@ -12,10 +17,11 @@ Methods Evaluated:
   5. 2-bit PTQ (post-training quantization of continuous ML phases)
   6. 1-bit PTQ (post-training quantization of continuous ML phases)
 
-Realizations:
-  100 independent trials per noise level = 1,500 total evaluations.
-  Seeds: 600,000 to 601,499 (strictly disjoint from all previous pools).
-  Channel realizations are shared across noise levels for identical realization tracking.
+Realizations & Seed Hierarchy:
+  - 100 base channel geometries (G, H) generated once with seeds 600,000 to 600,099 (shared across all 15 noise tiers).
+  - 100 independent pilot-noise realizations per tier (seeds 600,000 to 601,499, independent across noise levels).
+  - 100 independent random IRS phase draws for matched RZF (seeds 1,600,000 to 1,601,499, independent per evaluation).
+  - Total: 1,500 evaluations.
 """
 from __future__ import annotations
 
@@ -275,7 +281,7 @@ def plot_curves(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
 
     noise = df_sum["noise_dbm"].to_numpy()
 
-    # Figure 1: Sum-Rate vs Noise Floor
+    # Figure 1: Sum-Rate vs Pilot Noise Floor
     plt.figure(figsize=(9, 5.5), dpi=300)
     plt.style.use("seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in plt.style.available else "default")
 
@@ -290,11 +296,12 @@ def plot_curves(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
     plt.plot(noise, df_sum["qat_2bit_mean"], "^:", color="#2ca02c", linewidth=1.8, label="2-bit QAT (STE)")
     plt.plot(noise, df_sum["qat_1bit_mean"], "v:", color="#9467bd", linewidth=1.8, label="1-bit QAT (STE)")
 
-    plt.axvline(x=-92.5, color="gray", linestyle="--", alpha=0.7, label="Crossover Threshold (~ -93 dBm)")
+    plt.axvspan(-95.0, -90.0, color="gray", alpha=0.15, label="Transition Region (-95 to -90 dBm)")
+    plt.axvline(x=-92.5, color="gray", linestyle="--", alpha=0.8, label="Near-Equality Point (-92.5 dBm, p=0.765)")
 
-    plt.xlabel("Pilot Noise Floor $\\sigma_{\\mathrm{pilot}}^2$ (dBm)", fontsize=12, fontweight="bold")
+    plt.xlabel("Pilot Estimation Noise Floor $\\sigma_{\\mathrm{pilot}}^2$ (dBm)", fontsize=12, fontweight="bold")
     plt.ylabel("Achievable Sum-Rate (bps/Hz)", fontsize=12, fontweight="bold")
-    plt.title("IRS Multi-User Sum-Rate Across 15 Noise Floors (100 Realizations/Tier)", fontsize=13, fontweight="bold")
+    plt.title("IRS Multi-User Achievable Sum-Rate Across Pilot Noise Floors\n(100 Realizations/Tier, Fixed Data-Channel Noise $\\sigma^2_{\\mathrm{data}} \\approx -85$ dBm)", fontsize=12, fontweight="bold")
     plt.xlim(-101, -59)
     plt.grid(True, linestyle=":", alpha=0.6)
     plt.legend(frameon=True, loc="upper right", fontsize=10)
@@ -313,11 +320,12 @@ def plot_curves(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
     plt.bar(noise, gains, width=1.5, color=colors, alpha=0.85, edgecolor="black", linewidth=0.8,
             yerr=[err_low, err_high], capsize=3, label="Net Gain (ML - Matched RZF)")
     plt.axhline(0, color="black", linewidth=1.0)
-    plt.axvline(x=-92.5, color="gray", linestyle="--", alpha=0.7, label="Regime Boundary")
+    plt.axvspan(-95.0, -90.0, color="gray", alpha=0.15, label="Transition Region (-95 to -90 dBm)")
+    plt.axvline(x=-92.5, color="gray", linestyle="--", alpha=0.8, label="Near-Equality Point (-92.5 dBm)")
 
-    plt.xlabel("Pilot Noise Floor $\\sigma_{\\mathrm{pilot}}^2$ (dBm)", fontsize=12, fontweight="bold")
+    plt.xlabel("Pilot Estimation Noise Floor $\\sigma_{\\mathrm{pilot}}^2$ (dBm)", fontsize=12, fontweight="bold")
     plt.ylabel("Net Gain $\\Delta R_{\\mathrm{sum}}$ (bps/Hz)", fontsize=12, fontweight="bold")
-    plt.title("Net Beamforming Gain vs. Noise Floor with 95% Bootstrap CIs", fontsize=13, fontweight="bold")
+    plt.title("Net Beamforming Gain vs. Pilot Noise Floor with 95% Bootstrap CIs\n(Fixed Data-Channel Noise $\\sigma^2_{\\mathrm{data}} \\approx -85$ dBm)", fontsize=12, fontweight="bold")
     plt.xticks(noise, [f"{v:.1f}" for v in noise], rotation=45, fontsize=9)
     plt.grid(True, linestyle=":", alpha=0.6)
     plt.legend(frameon=True, loc="upper left", fontsize=10)
@@ -330,21 +338,26 @@ def plot_curves(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
 def generate_report(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
     report_path = os.path.join(OUT_DIR, "EXPANDED_EXPERIMENT_REPORT.md")
     lines = [
-        "# Expanded Noise-Floor Sweep Report: 15 Noise Tiers (-100 dBm to -60 dBm)",
+        "# Pilot Noise-Floor Sweep Report: 15 Pilot Noise Tiers (-100 dBm to -60 dBm) under Fixed Data-Channel Noise",
         "",
-        "## 1. Experimental Protocol",
-        "- **Evaluated Noise-Floor Grid (15 values):** `[-100.0, -97.5, -95.0, -92.5, -90.0, -87.5, -85.0, -82.5, -80.0, -77.5, -75.0, -72.5, -70.0, -65.0, -60.0]` dBm.",
-        "- **Realizations:** 100 trials per noise floor = 1,500 total realizations.",
-        "- **Seed Allocation:** Seeds 600,000 to 601,499 (strictly disjoint from training, validation, Phase 3, and confirmatory sets).",
-        "- **Shared Channel Geometries:** To isolate noise degradation, 100 base propagation channels $(G_i, H_i)$ are evaluated consistently across all 15 noise floors, tracking individual trajectory curves.",
+        "## 1. Experimental Protocol & Noise Characterization",
+        "- **Experiment Definition:** Pilot noise-floor sweep under fixed data-channel noise.",
+        "- **Pilot Noise-Floor Grid (15 values):** `[-100.0, -97.5, -95.0, -92.5, -90.0, -87.5, -85.0, -82.5, -80.0, -77.5, -75.0, -72.5, -70.0, -65.0, -60.0]` dBm.",
+        "  - Applied during multi-phase Least-Squares cascaded channel estimation (`multi_phase_pilot_estimate_C`).",
+        "- **Fixed Data-Channel Noise:** Held constant at $\\sigma_{\\mathrm{data}}^2 = 3.16 \\times 10^{-12}\\text{ W} \\approx -85.0\\text{ dBm}$ during the true-channel achievable sum-rate evaluation across all methods. This cleanly isolates the impact of pilot channel-estimation error from data detection SNR.",
+        "- **Realizations:** 100 trials per pilot noise floor = 1,500 total evaluations.",
+        "- **Random Seed Hierarchy & Provenance:**",
+        "  - **Channel-Geometry Seeds:** Seeds 600,000 to 600,099 (`BASE_SEED + trial`) generate 100 distinct physical channel geometries $(G_i, H_i)$ that are shared across all 15 pilot noise levels.",
+        "  - **Pilot-Noise Seeds:** Seeds 600,000 to 601,499 (`BASE_SEED + tier_idx * 100 + trial`) generate independent pilot noise realizations across tiers and trials (1,500 distinct pseudo-random draws).",
+        "  - **Random IRS Phase Seeds:** Seeds 1,600,000 to 1,601,499 (`1000000 + trial_seed`) generate independent phase shift configurations for the Matched Random RZF baseline.",
         "- **Model Checkpoints:**",
         "  - Continuous ML: `results/gnn/best_beamforming_model.pt` (SHA-256: `25c75f469f9eafb2d49308d4498546d7d76f611e2713260318a2d29ddd31c517`)",
         "  - 2-bit QAT: `results/phase5_quantization/model_2bit_qat.pt` (SHA-256: `e32000dbab59ee24014c01aeacc3d36ca93a6b57964ee55c61f1df4ae90dc514`)",
         "  - 1-bit QAT: `results/phase5_quantization/model_1bit_qat.pt` (SHA-256: `e90f0bdd8c035ddbdbb935fc6733ef7b4717535f9786cc997a2b6b8ebc6b87ae`)",
         "",
-        "## 2. Comprehensive Numerical Results Across 15 Noise Tiers",
+        "## 2. Comprehensive Numerical Results Across 15 Pilot Noise Tiers",
         "",
-        "| Noise Floor (dBm) | Deep ML Continuous | Matched Random RZF | Net Gain (ML - RZF) | 95% Bootstrap CI | ML Win Rate | Paired $t$-test $p$-val | Bonferroni $p$-val | 2-bit QAT | 1-bit QAT |",
+        "| Pilot Noise Floor (dBm) | Deep ML Continuous | Matched Random RZF | Net Gain (ML - RZF) | 95% Bootstrap CI | ML Win Rate | Paired $t$-test $p$-val | Bonferroni $p$-val | 2-bit QAT | 1-bit QAT |",
         "|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|",
     ]
 
@@ -366,17 +379,19 @@ def generate_report(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
 
     lines.extend([
         "",
-        "## 3. Physical Operating Regime Insights",
-        "1. **High-SNR Crossover Boundary at ~ -93 dBm:**",
-        "   - In the clean pilot regime ($-100$ to $-95$ dBm), classical Matched Random RZF outperforms Deep ML (gains of $-8.50$ to $-3.08$ bps/Hz).",
-        "   - At $-92.5$ dBm, the transition occurs: ML achieves $22.21$ bps/Hz vs. RZF $21.90$ bps/Hz ($+0.31$ bps/Hz, win rate 54%).",
-        "2. **Severe Noise Dominance (-90 dBm to -60 dBm):**",
-        "   - Across all noise floors $\\ge -90$ dBm, Deep ML decisively outperforms Matched Random RZF.",
-        "   - Gains scale monotonically: $+2.85$ bps/Hz at $-90$ dBm up to $+14.92$ bps/Hz at $-70$ dBm and $+11.41$ bps/Hz at $-60$ dBm.",
-        "   - Even in extreme thermal noise ($-60$ dBm), where classical RZF collapses to $2.74$ bps/Hz, Deep ML preserves $14.15$ bps/Hz.",
+        "## 3. Physical Operating Regime & Transition Analysis",
+        "1. **Transition Region ($-95.0$ to $-90.0$ dBm) and Near-Equality Point at $-92.5$ dBm:**",
+        "   - In the clean pilot regime ($-100$ to $-95$ dBm), accurate channel estimation allows classical Matched Random RZF to outperform Deep ML (net gains of $-7.94$ to $-1.67$ bps/Hz).",
+        "   - At $-92.5$ dBm, the two methods achieve near-equality: Deep ML achieves $22.64 \\pm 2.77$ bps/Hz vs. Matched RZF $22.40 \\pm 8.49$ bps/Hz (mean difference $+0.235$ bps/Hz, 95% bootstrap CI $[-1.33, +1.78]$ bps/Hz, paired $t = 0.2995, df = 99, p = 0.765$, Wilcoxon $p = 0.850$, win count 52/100).",
+        "   - Because $p = 0.765$ and the win rate is virtually 50/50, the two methods are statistically indistinguishable at $-92.5$ dBm. Rather than a knife-edge point crossover, the data define a broad transition region spanning approximately $-95.0$ to $-90.0$ dBm.",
+        "   - At $-90.0$ dBm, Deep ML establishes a statistically decisive lead ($+3.93$ bps/Hz, paired $t = 5.27, p = 7.98 \\times 10^{-7}$, win rate 74.0%).",
+        "2. **Severe Pilot Contamination Regime ($-90$ to $-60$ dBm):**",
+        "   - Across all pilot noise floors $\\ge -90$ dBm, Deep ML decisively outperforms Matched Random RZF under the fixed $-85$ dBm data-channel condition.",
+        "   - As pilot noise increases, estimation errors corrupt the cascaded matrix $\\hat{C}_{\\text{LS}}$. Classical RZF, which requires inverting this noisy matrix, suffers from catastrophic noise amplification and collapses to $2.70 \\pm 1.31$ bps/Hz at $-60$ dBm pilot noise.",
+        "   - In contrast, Deep ML avoids direct matrix inversion of estimation noise through learned regularized mappings, preserving $17.42 \\pm 5.49$ bps/Hz ($+14.73$ bps/Hz net gain, 100/100 wins, paired $t = 28.79, df = 99, p = 6.55 \\times 10^{-50}$).",
         "3. **Quantization Resilience:**",
-        "   - 2-bit QAT preserves $\\ge 98.5\\%$ of continuous performance across all 15 noise tiers.",
-        "   - 1-bit QAT preserves $\\ge 94.0\\%$ across all tiers.",
+        "   - 2-bit QAT preserves $\\ge 92.6\\%$ of continuous performance even under $-60$ dBm pilot noise ($16.13$ vs $17.42$ bps/Hz) and $\\ge 96.3\\%$ across $-100$ to $-70$ dBm.",
+        "   - 1-bit QAT preserves $\\ge 91.4\\%$ at $-60$ dBm ($15.93$ vs $17.42$ bps/Hz) and $\\ge 94.0\\%$ across $-100$ to $-70$ dBm.",
     ])
 
     with open(report_path, "w", encoding="utf-8") as f:
