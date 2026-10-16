@@ -388,7 +388,7 @@ def generate_report(df_sum: pd.DataFrame, df_comp: pd.DataFrame):
         "2. **Severe Pilot Contamination Regime ($-90$ to $-60$ dBm):**",
         "   - Across all pilot noise floors $\\ge -90$ dBm, Deep ML decisively outperforms Matched Random RZF under the fixed $-85$ dBm data-channel condition.",
         "   - As pilot noise increases, estimation errors corrupt the cascaded matrix $\\hat{C}_{\\text{LS}}$. Classical RZF, which requires inverting this noisy matrix, suffers from catastrophic noise amplification and collapses to $2.70 \\pm 1.31$ bps/Hz at $-60$ dBm pilot noise.",
-        "   - In contrast, Deep ML avoids direct matrix inversion of estimation noise through learned regularized mappings, preserving $17.42 \\pm 5.49$ bps/Hz ($+14.73$ bps/Hz net gain, 100/100 wins, paired $t = 28.79, df = 99, p = 6.55 \\times 10^{-50}$).",
+        "   - In contrast, Deep ML optimizes passive phases directly and predicts adaptive regularization $\\alpha$ that dampens noise-corrupted directions during $K \\times K$ matrix inversion, preserving $17.42 \\pm 5.49$ bps/Hz ($+14.73$ bps/Hz net gain, 100/100 wins, paired $t = 28.79, df = 99, p = 6.55 \\times 10^{-50}$).",
         "3. **Quantization Resilience:**",
         "   - 2-bit QAT preserves $\\ge 92.6\\%$ of continuous performance even under $-60$ dBm pilot noise ($16.13$ vs $17.42$ bps/Hz) and $\\ge 96.3\\%$ across $-100$ to $-70$ dBm.",
         "   - 1-bit QAT preserves $\\ge 91.4\\%$ at $-60$ dBm ($15.93$ vs $17.42$ bps/Hz) and $\\ge 94.0\\%$ across $-100$ to $-70$ dBm.",

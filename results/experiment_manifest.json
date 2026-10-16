@@ -196,12 +196,13 @@
       "description": "Net sum-rate gain of ML over matched RZF across 15 pilot noise levels highlighting the near-equality point at -92.5 dBm"
     },
     "results/noise_floor_expanded/EXPANDED_EXPERIMENT_REPORT.md": {
-      "sha256": "c20189add53d0b0e79749a9358028f789c91bc0c287d57f7c3be033f8d5527bb",
+      "sha256": "578225d8ae593f7dff744a62175d9106227075d9b21c1fdc079ae808f385b983",
       "description": "Scientific experiment report for the 15-point pilot noise-floor sweep under fixed data-channel noise"
     },
     "results/run_noise_floor_expansion.py": {
-      "sha256": "576ce99e5cdf2c6115e46c8d729985e409b343ef46f8e05c62e743c12b5d3122",
+      "sha256": "f11f88bc74071b0988fd5578df9f95f0bfd3483161d0c50d61daa5d4de95be19",
       "description": "Automated reproduction script for the 15-point pilot noise-floor sweep"
     }
-  }
+  },
+  "provenance_note": "Records the baseline experiment-generating revision (d54e9ba) where trained model checkpoints, evaluation datasets, and baseline CSV outputs were originally produced and frozen on branch pre-publication-audit-freeze; documentation and audit revisions occur in subsequent commits."
 }

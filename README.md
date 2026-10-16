@@ -1,27 +1,37 @@
-# Intelligent Reflecting Surface (IRS) Assisted Adaptive Beamforming
+# Noise-Resilient Intelligent Reflecting Surface (IRS) Adaptive Beamforming
 
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming)
-[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg?logo=python)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg?logo=pytorch)](https://pytorch.org/)
-[![MATLAB](https://img.shields.io/badge/MATLAB-R2020a%2B-orange.svg?logo=mathworks)](https://www.mathworks.com/products/matlab.html)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python)](https://www.python.org/)
+[![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg?logo=pytorch)](https://pytorch.org/)
+[![Status: Conditional Expert Review](https://img.shields.io/badge/Status-Conditionally%20Ready%20for%20Review-brightgreen.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An end-to-end research, simulation, and benchmark framework for Intelligent Reflecting Surface (IRS) assisted multi-user MISO wireless communication systems under practical, noisy channel conditions.
+An end-to-end research, simulation, and benchmark framework for Intelligent Reflecting Surface (IRS) assisted multi-user MISO wireless communication systems under practical, noisy channel state information (CSI).
 
-This repository implements the complete pipeline from physical channel modeling and multi-phase pilot estimation to classical Alternating Optimization (AO) with Semidefinite Relaxation (SDR) and end-to-end unsupervised **Deep Beamforming (`DeepBeamformingNet`)**. The deep beamformer directly maps noisy cascaded channel estimates to joint active transmit precoders and passive IRS reflection phase shifts, achieving dramatic sum-rate gains in moderate-to-severe noise regimes and a **~46,000× latency speedup** suitable for real-time deployment.
+This repository implements the complete pipeline from physical channel modeling and multi-phase pilot estimation to classical Alternating Optimization (AO) with Semidefinite Relaxation (SDR) and end-to-end unsupervised **Deep Beamforming (`DeepBeamformingNet`)**. The deep beamformer directly maps noisy cascaded channel estimates to joint active transmit precoders and passive IRS reflection phase shifts, achieving decisive sum-rate gains in moderate-to-severe noise regimes with a **$4,430.1\times$ algorithmic optimization speedup** over numerical solvers.
 
 ---
 
-## Key Highlights & Findings
+## Documentation Links
 
-- **Decoupled Cascaded Channel Architecture:** Eliminates high-dimensional active RF chain requirements at the IRS by estimating the cascaded user-IRS-BS link matrix $C_k \in \mathbb{C}^{M \times N}$ via multi-phase least-squares (LS) estimation ($Q = M = 64$ pilot phases, $\tau = 16$ symbols).
+- **Primary Research Manuscript:** [`results/manuscript_draft.md`](results/manuscript_draft.md) (Target: *IEEE Wireless Communications Letters*)
+- **Comprehensive Technical Documentation & Handoff:** [`PROJECT_DOCUMENTATION.md`](PROJECT_DOCUMENTATION.md) (Full system architecture, proofs, statistical methodology, claims matrix, and reproduction guide)
+- **Cryptographic Experiment Manifest:** [`results/experiment_manifest.json`](results/experiment_manifest.json) (SHA-256 hashes of all checkpoints, datasets, and reports)
+
+---
+
+## Key Highlights & Scientific Findings
+
+- **Decoupled Cascaded Channel Architecture:** Eliminates high-dimensional active RF receive chains at the IRS by estimating the cascaded user-IRS-BS link matrix $C_k \in \mathbb{C}^{M \times N}$ via multi-phase least-squares (LS) estimation ($Q = M = 64$ DFT pilot phases, $\tau = 16$ symbols).
 - **Physics-Grounded Propagation:** Rician fading for BS-IRS link ($K_{\text{Rician}} = 10$), Rayleigh fading for IRS-User scattering links, 3D geometric positioning, and distance-dependent path loss with directional antenna gains ($19.6\text{ dB}$).
-- **Classical Optimization Baselines:** MATLAB CVX implementation of Alternating Optimization (AO) with Semidefinite Relaxation (SDR) and Gaussian randomization under both Perfect-CSI (theoretical upper bound) and Estimated-CSI evaluated on true channels.
-- **End-to-End Deep Beamforming:** Complex MLP network trained with negative sum-rate loss directly on true physical channels, learning noise-robust beam patterns that overcome residual LS channel estimation errors.
+- **Direct Unsupervised Deep Beamforming:** `DeepBeamformingNet` (42,439 parameters) features element-permutation-equivariant `ElementBlock` layers that map noisy LS estimates $\hat{C}_{\text{LS}}$ directly to passive phases $\boldsymbol{\theta}_{\text{ML}}$, power allocations $\mathbf{p}$, and learned regularizations $\alpha$, synthesizing active precoders in closed form via Gram matrix inversion.
 - **Large-Scale Independent Verification (500 Held-Out Realizations):**
-  - **Overall Paired Win Rate:** **81.6% (408 / 500 realizations)** won by Deep Beamforming over classical AO.
-  - **Moderate-to-Severe Noise Regime ($-85$ to $-70\text{ dBm}$):** **99.3% (298 / 300 realizations)** win rate with paired gains up to **+15.53 bps/Hz (+500%)**.
-  - **Inference Speedup:** Average execution time drops from **53.6 s** (MATLAB CVX AO) to **1.15 ms** (PyTorch CPU), representing a **$46,600\times$ speedup** well within standard channel coherence intervals ($T_c \approx 5\text{--}10\text{ ms}$).
+  - **Overall Average Sum-Rate:** Deep ML achieves **$21.80 \pm 3.38\text{ bps/Hz}$**, outperforming classical AO (**$13.01 \pm 10.31\text{ bps/Hz}$**) by **+8.79 bps/Hz** (win rate **80.0% (400/500)**, $p = 1.48 \times 10^{-65}$) and matched Random RZF (**$15.69 \pm 10.83\text{ bps/Hz}$**) by **+6.11 bps/Hz** (win rate **73.4% (367/500)**, $p = 9.13 \times 10^{-35}$).
+  - **Severe Pilot Noise Dominance (−70 dBm):** In severe pilot noise, classical AO collapses to $3.76\text{ bps/Hz}$ and matched RZF to $4.88\text{ bps/Hz}$, while Deep ML maintains **$20.14\text{ bps/Hz}$** (gains up to **+16.38 bps/Hz**, 100/100 wins).
+  - **Operating Regime Boundaries Identified:** Classical AO ($27.40\text{ bps/Hz}$) and matched RZF ($30.34\text{ bps/Hz}$) win at high SNR (−100 dBm) due to surplus BS antennas ($N=8 > K=4$). In pure isotropic Rayleigh fading ($K_{\text{rice}}=0$), matched RZF wins ($24.72\text{ vs }17.22\text{ bps/Hz}$) because rich scattering provides full channel rank.
+- **Quantization-Aware Training (QAT):** 2-bit discrete phase QAT retains **99.5%** of continuous sum-rate ($21.28\text{ vs }21.39\text{ bps/Hz}$), and 1-bit QAT retains **95.6%** ($20.46\text{ bps/Hz}$).
+- **Latency Acceleration:** Optimization execution time drops from **10.49 s** (MATLAB CVX AO) to **2.37 ms** (PyTorch CPU), an algorithmic speedup of **$4,430.1\times$** (**$223.5\times$** end-to-end acceleration including LS estimation).
+- **Noise Feature Redundancy (Negative Finding):** Controlled ablation proves scalar noise floor input is statistically redundant ($p = 0.5818$), showing the network regularizes directly on estimation residuals.
 
 ---
 
@@ -33,57 +43,48 @@ This repository implements the complete pipeline from physical channel modeling 
                     |  Surface (IRS, M = 64)      |
                     +-----------------------------+
                                ^         \
-       BS-IRS Link (G)         |          \  IRS-User Link (H_k)
+       BS-IRS Link (G)         |          \  IRS-User Link (h_r,k)
        Rician Fading (K=10)    |           \ Rayleigh Fading
                                |            v
     +-----------------------------+      +-------------------+
-    | Base Station (BS, N = 8)   |      | User k (K = 4)    |
+    | Base Station (BS, N = 8)    |      | User k (K = 4)    |
     | Transmit Power P_max = 10 W |      | Single antenna    |
     +-----------------------------+      +-------------------+
+             Direct Links Blocked by Urban Obstacles
 ```
 
 ### Network Configuration
 - **Base Station (BS):** $N = 8$ transmit antennas configured as a Uniform Linear Array (ULA).
-- **IRS:** $M = 64$ passive reflecting elements with phase shifts $\boldsymbol{\theta} = [e^{j\theta_1}, \dots, e^{j\theta_M}]^T$, where $|\theta_m| = 1$.
+- **IRS:** $M = 64$ passive reflecting elements configured as an $8 \times 8$ Uniform Planar Array (UPA).
 - **Users:** $K = 4$ single-antenna receivers randomly distributed at distances $d_{\text{IU}} \in [5, 30]\text{ m}$.
-
-### Cascaded Channel Formulation
-The effective channel for user $k$ under IRS phase vector $\boldsymbol{\theta}$ is:
-$$h_{\text{eff}, k} = h_k^H \text{diag}(\boldsymbol{\theta}) G = \boldsymbol{\theta}^T C_k$$
-where $C_k = \text{diag}(h_k^H) G \in \mathbb{C}^{M \times N}$ is the cascaded channel matrix.
-
-### Received Signal & Achievable Sum-Rate
-The received signal at user $k$ is:
-$$y_k = \boldsymbol{\theta}^T C_k w_k s_k + \sum_{j \neq k} \boldsymbol{\theta}^T C_k w_j s_j + n_k, \quad n_k \sim \mathcal{CN}(0, \sigma^2)$$
-
-The true-channel achievable sum-rate is:
-$$R_{\text{sum}}(W, \boldsymbol{\theta}) = \sum_{k=1}^K \log_2 \left(1 + \frac{|(\boldsymbol{\theta}^*)^T C_k w_k|^2}{\sum_{j \neq k} |(\boldsymbol{\theta}^*)^T C_k w_j|^2 + \sigma^2}\right)$$
-subject to $\sum_{k=1}^K \|w_k\|^2 \le P_{\max}$ and $|\theta_m| = 1, \forall m$.
+- **Transmit Power:** $P_{\max} = 10\text{ W}$ ($40\text{ dBm}$) across all users.
 
 ---
 
-## Performance Summary (500 Independent Realizations)
+## Primary Performance Summary (500 Independent Realizations)
 
-Evaluation conducted across 500 independent test channel realizations (seeds `100000`–`100499`, 100 trials per noise floor across 5 noise tiers) using identical channel realizations:
+Evaluation conducted across 500 independent test channel realizations (seeds `100,000`–`100,499`, 100 trials per noise floor across 5 noise tiers) using strictly matched channel and noise instances:
 
-| Noise Floor ($\sigma^2$) | Full AO (CVX) | Deep Beamforming | Matched Random RZF | Gain vs. AO | Win Rate vs. AO | $p$-value (vs. AO) | Gain vs. RZF | Win Rate vs. RZF | $p$-value (vs. RZF) |
-|---|---|---|---|---|---|---|---|---|---|
-| **-100.0 dBm** | **27.40 ± 9.04 bps/Hz** | 22.58 ± 2.55 bps/Hz | **30.34 ± 9.00 bps/Hz** | -4.82 bps/Hz | 24.0% (24/100) | $1.25 \times 10^{-8}$ | -7.76 bps/Hz | 15.0% (15/100) | $1.62 \times 10^{-15}$ |
-| **-90.0 dBm** | 15.50 ± 7.20 bps/Hz | **22.08 ± 2.57 bps/Hz** | 19.36 ± 7.49 bps/Hz | **+6.59 bps/Hz** | 82.0% (82/100) | $4.23 \times 10^{-14}$ | **+2.72 bps/Hz** | 62.0% (62/100) | $7.23 \times 10^{-4}$ |
-| **-85.0 dBm** | 10.97 ± 6.42 bps/Hz | **22.02 ± 2.90 bps/Hz** | 13.86 ± 5.94 bps/Hz | **+11.06 bps/Hz** | 94.0% (94/100) | $8.11 \times 10^{-33}$ | **+8.16 bps/Hz** | 91.0% (91/100) | $3.49 \times 10^{-26}$ |
-| **-80.0 dBm** | 7.41 ± 4.39 bps/Hz | **22.16 ± 3.20 bps/Hz** | 9.98 ± 5.18 bps/Hz | **+14.76 bps/Hz** | 100.0% (100/100) | $3.16 \times 10^{-56}$ | **+12.18 bps/Hz** | 99.0% (99/100) | $5.61 \times 10^{-44}$ |
-| **-70.0 dBm** | 3.76 ± 2.08 bps/Hz | **20.14 ± 4.69 bps/Hz** | 4.88 ± 2.74 bps/Hz | **+16.38 bps/Hz** | 100.0% (100/100) | $5.23 \times 10^{-60}$ | **+15.26 bps/Hz** | 100.0% (100/100) | $1.23 \times 10^{-58}$ |
-| **Overall** | 13.01 ± 10.31 bps/Hz | **21.80 ± 3.38 bps/Hz** | 15.69 ± 10.83 bps/Hz | **+8.79 bps/Hz** | **80.0% (400/500)** | **$1.48 \times 10^{-65}$** | **+6.11 bps/Hz** | **73.4% (367/500)** | **$9.13 \times 10^{-35}$** |
+| Pilot Noise Level | Full AO (CVX) [bps/Hz] | Matched Random RZF [bps/Hz] | DeepBeamformingNet [bps/Hz] | Net Gain vs. AO | Net Gain vs. RZF | ML Win Rate vs. RZF |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **−100 dBm** | $27.40 \pm 9.04$ | $\mathbf{30.34 \pm 5.48}$ | $22.58 \pm 2.45$ | −4.82 bps/Hz | −7.76 bps/Hz | 18% (18/100) |
+| **−90 dBm** | $18.52 \pm 6.13$ | $21.57 \pm 4.39$ | $\mathbf{22.42 \pm 2.37}$ | +3.90 bps/Hz | +0.85 bps/Hz | 62% (62/100) |
+| **−85 dBm** | $11.08 \pm 3.65$ | $14.12 \pm 3.52$ | $\mathbf{22.17 \pm 2.76}$ | +11.09 bps/Hz | +8.05 bps/Hz | 99% (99/100) |
+| **−80 dBm** | $4.29 \pm 1.47$ | $7.55 \pm 2.12$ | $\mathbf{21.70 \pm 3.25}$ | +17.41 bps/Hz | +14.15 bps/Hz | 100% (100/100) |
+| **−70 dBm** | $3.76 \pm 2.08$ | $4.88 \pm 2.12$ | $\mathbf{20.14 \pm 4.29}$ | +16.38 bps/Hz | +15.26 bps/Hz | 100% (100/100) |
+| **Overall Mean** | **13.01 ± 10.31** | **15.69 ± 10.83** | **21.80 ± 3.38** | **+8.79 bps/Hz** | **+6.11 bps/Hz** | **73.4% (367/500)** |
 
-> **Scientific Operating-Regime Boundary Note:**
-> - At high pilot SNR (-100 dBm), the Base Station has surplus spatial degrees of freedom ($N=8$ antennas, $K=4$ users). Low pilot error enables classical AO (27.40 bps/Hz) and matched RZF with random IRS phases (30.34 bps/Hz) to outperform direct ML (22.58 bps/Hz).
-> - In moderate-to-severe noise regimes (-90 to -70 dBm), pilot estimation error contaminates classical matrix inversions, causing AO and RZF performance to degrade sharply. Deep Beamforming maintains robust sum-rates (20.14–22.28 bps/Hz) through learned direct optimization.
+*Paired Hypothesis Testing:*
+- **Gain vs. Full AO:** $+8.79\text{ bps/Hz}$ ($t = 19.95, df = 499, p = 1.48 \times 10^{-65}$; win rate $80.0\%$, $400/500$).
+- **Gain vs. Matched RZF:** $+6.11\text{ bps/Hz}$ ($t = 13.30, df = 499, p = 9.13 \times 10^{-35}$; 95% CI: $[+5.19, +6.98]$; win rate $73.4\%$, $367/500$).
 
-### Computation Latency Benchmark (Measured on Identical Hardware)
-- **Classical AO (CVX / SeDuMi):** $10.49 \pm 4.24\text{ s}$ per realization (imported from 500-sample MATLAB evaluation).
-- **Deep Beamforming Inference (`DeepBeamformingNet` CPU):** $2.37 \pm 0.77\text{ ms}$ per realization (median: $2.25\text{ ms}$, 200 trials).
-- **Algorithmic Optimization Speedup:** **$4,430.1\times$**.
-- **End-to-End Latency:** $47.15\text{ ms}$ (including $44.78\text{ ms}$ LS estimation and $0.45\text{ ms}$ active precoder generation) vs. $10.54\text{ s}$ total for classical pipeline (**$223.5\times$** end-to-end acceleration).
+### Computational Latency Profile (Standard Workstation CPU)
+- **Classical AO (CVX / SeDuMi):** $10.49 \pm 4.24\text{ s}$ per realization.
+- **Deep Beamforming Inference (`DeepBeamformingNet` CPU):** $2.37 \pm 0.77\text{ ms}$ (median: $2.25\text{ ms}$).
+- **Active RZF Precoder Inversion (PyTorch):** $0.45 \pm 0.18\text{ ms}$.
+- **Multi-Phase LS Channel Estimation ($Q=64, \tau=16$):** $44.78 \pm 5.32\text{ ms}$.
+- **Algorithmic Optimization Acceleration:** **$4,430.1\times$**.
+- **End-to-End Latency Acceleration:** **$223.5\times$** ($47.15\text{ ms}$ vs. $10.54\text{ s}$).
 
 ---
 
@@ -91,236 +92,118 @@ Evaluation conducted across 500 independent test channel realizations (seeds `10
 
 ```
 irs_project/
-|-- README.md                         # Top-level project documentation
-|-- PROJECT_DOCUMENTATION.md          # Comprehensive technical and mathematical audit
+|-- README.md                         # Project overview and quickstart guide
+|-- PROJECT_DOCUMENTATION.md          # Master documentation & technical reference
+|-- LICENSE                           # MIT License
 |-- config/
-|   `-- system_config.py              # Central wireless simulation parameters
+|   `-- system_config.py              # Central simulation parameters
 |-- simulation/
-|   |-- channel.py                    # Rician BS-IRS & Rayleigh IRS-User channel generator
-|   |-- pilot.py                      # Orthogonal pilot generation & noise floor modeling
+|   |-- channel.py                    # Rician BS-IRS & Rayleigh IRS-User generator
+|   |-- pilot.py                      # Orthogonal pilot generation & noise modeling
 |   `-- multi_phase_estimation.py     # Multi-phase LS cascaded channel estimation
 |-- gnn/
-|   |-- beamforming_model.py          # DeepBeamformingNet architecture & complex MLP layers
+|   |-- beamforming_model.py          # DeepBeamformingNet architecture (42,439 params)
 |   |-- beamforming_dataset.py        # Dataset loader for complex channel tensors
-|   |-- train_beamforming.py          # Unsupervised training pipeline (sum-rate maximization)
-|   |-- model.py                      # Preliminary GNN estimation model (Phase 3 archive)
-|   |-- dataset.py                    # Graph dataset builder (Phase 3 archive)
-|   `-- evaluate.py                   # Model evaluation utilities
+|   |-- quantization.py               # 1-bit & 2-bit STE quantization layers
+|   |-- train_beamforming.py          # Unsupervised training pipeline
+|   |-- train_quantization.py         # Quantization-aware training pipeline
+|   |-- train_and_eval_robustness.py  # Fading robustness study (Task 2)
+|   |-- train_and_eval_generalization.py # Dimension scaling study (Task 3)
+|   `-- train_and_eval_noise_ablation.py # Noise-floor feature ablation (Task 4)
 |-- matlab/
-|   |-- Opt_func_perfectCSI.m         # AO baseline with perfect CSI (upper bound)
-|   |-- Opt_func_Ck.m                 # AO baseline with estimated cascaded CSI
-|   |-- Bisection.m                   # Optimal transmit power allocation bisection search
-|   |-- compute_sum_rate.m            # True-channel achievable sum rate calculation
-|   |-- export_channels.py            # Channel matrix export to MATLAB .mat format
-|   |-- run_phase2.m                  # Phase 2 classical baseline single-point runner
-|   |-- run_snr_sweep.m               # Multi-realization SNR sweep runner
-|   |-- run_tau_sweep.m               # Pilot overhead sweep runner
+|   |-- Opt_func_perfectCSI.m         # Classical AO baseline (Perfect CSI)
+|   |-- Opt_func_Ck.m                 # Classical AO baseline (Estimated CSI)
 |   |-- run_eval_range.m              # Parallel batch worker for Monte Carlo evaluation
 |   `-- run_phase3_full_eval.m        # Phase 3 MATLAB evaluation pipeline
 |-- tests/
-|   |-- test_phase1.py                # Unit tests for channel physics and pilot orthogonality
-|   |-- test_phase3.py                # Unit tests for GNN components
-|   `-- test_deep_beamforming.py      # Unit tests for DeepBeamformingNet pipeline
+|   |-- test_phase1.py                # Unit tests for physical channels & pilots
+|   |-- test_phase3.py                # Unit tests for GNN modules
+|   |-- test_quantization.py          # Unit tests for 1-bit & 2-bit STE quantization
+|   `-- test_deep_beamforming.py      # Unit tests for precoder bounds & conjugation
 `-- results/
-    |-- gnn/                          # Saved models, training history, and loss curves
-    |   |-- best_beamforming_model.pt # Frozen optimal DeepBeamformingNet checkpoint
-    |   `-- beamforming_training_history.json
-    |-- fig_phase3_sumrate_vs_snr.png # Achievable sum-rate comparison across noise floors
-    |-- fig_phase3_gain_vs_snr.png    # Absolute & percentage gains over classical AO
-    |-- fig_phase3_independent_cdf.png# Empirical CDF distribution of sum rates
-    |-- fig_phase3_runtime_comparison.png # Latency profile (AO vs Deep Beamforming)
-    |-- phase3_independent_summary.csv# Summary statistics across 500 held-out realizations
-    |-- phase3_independent_per_realization.csv # Granular per-trial comparative results
-    |-- generate_independent_500_data.py   # Test dataset generator (seeds 100000-100499)
-    `-- process_independent_500_results.py  # Statistical testing, tables, and figure plotting
+    |-- manuscript_draft.md           # Publication research manuscript
+    |-- experiment_manifest.json      # Cryptographic SHA-256 hash manifest
+    |-- gnn/best_beamforming_model.pt # Frozen optimal DeepBeamformingNet checkpoint
+    |-- confirmatory_validation_summary.csv # Confirmatory validation results (500 virgin channels)
+    |-- phase3_independent_summary_corrected.csv # Phase 3 corrected baseline results
+    |-- benchmark_runtime_summary.json# Standardized latency measurements
+    `-- noise_floor_expanded/         # Expanded 15-point pilot noise sweep (1,500 evaluations)
 ```
 
 ---
 
-## System Parameters
+## Installation & Setup
 
-Default system configurations from `config/system_config.py`:
-
-| Parameter | Symbol | Default Value | Description |
-|---|---|---|---|
-| BS Antennas | $N$ | 8 | Uniform Linear Array elements at Base Station |
-| IRS Elements | $M$ | 64 | Passive reflecting elements with discrete/continuous phase |
-| Users | $K$ | 4 | Single-antenna ground mobile stations |
-| BS-IRS Distance | $d_{\text{BI}}$ | 50.0 m | Fixed separation distance |
-| IRS-User Distance | $d_{\text{IU}}$ | 5.0 to 30.0 m | Uniformly distributed user range |
-| BS-IRS Path Loss Exponent | $\alpha_{\text{BI}}$ | 2.2 | Near line-of-sight propagation environment |
-| IRS-User Path Loss Exponent | $\alpha_{\text{IU}}$ | 3.5 | Non line-of-sight multi-path scattering |
-| Rician Factor (BS-IRS) | $K_{\text{Rician}}$ | 10.0 (10 dB) | LoS-to-multipath linear power ratio |
-| Reference Path Loss | $C_0$ | -30.0 dB | Path loss at reference distance $d_0 = 1.0\text{ m}$ |
-| Element Directional Gain | $G_{\text{ant}}$ | 19.6 dB | Combined antenna and reflection directional gain |
-| Pilot Length | $\tau$ | 16 symbols | Pilot sequence length per IRS configuration |
-| Pilot Configurations | $Q$ | 64 | Number of linearly independent reflection patterns |
-| Coherence Block | $T_{\text{coherence}}$ | 200 symbols | Coherence interval in symbol durations |
-| BS Max Transmit Power | $P_{\max}$ | 10.0 W (40 dBm) | Linear transmit power budget |
-| Noise Floor Sweep | $\sigma^2$ | -100 to -65 dBm | Thermal noise range across evaluation scenarios |
-
----
-
-## Installation & Prerequisites
-
-### Python Environment
-- Python 3.9+
-- Recommended virtual environment:
+### 1. Python Environment Setup
 ```bash
+# Clone the repository
+git clone https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming.git
+cd irs-adaptive-beamforming
+
+# Create and activate virtual environment
 python -m venv venv
-# Windows:
-.\venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
+.\venv\Scripts\activate       # Windows PowerShell
+# source venv/bin/activate    # Linux / macOS
 
-pip install numpy scipy matplotlib torch pandas
+# Install dependencies
+pip install torch numpy scipy pandas matplotlib
 ```
 
-### MATLAB Environment
-- MATLAB R2020a or later
-- Optimization Toolbox
-- [CVX](http://cvxr.com/cvx/): Convex programming package for MATLAB (configured with SeDuMi or SDPT3 solver). Run `cvx_setup` before running MATLAB routines.
+### 2. Verify Installation with Unit Test Suite
+Run the 4 automated unit test suites covering physical channel modeling, GNN layers, STE quantization, and strict beamforming power constraints:
+```bash
+python -X utf8 -m tests.test_phase1
+python -X utf8 -m tests.test_phase3
+python -X utf8 -m tests.test_quantization
+python -X utf8 -m tests.test_deep_beamforming
+```
+*Expected Outcome:* All 4 test modules pass with exit code 0 (`ALL TESTS PASSED`, with 48 passed checks across four test modules: Phase 1: 21 checks, Phase 3: 12 checks, Quantization: 5 checks, Deep Beamforming: 10 checks).
 
 ---
 
-## Reproduction & Usage Guide
+## Reproduction Quickstart
 
-### 1. Verify Simulation Core (Phase 1)
-Run the automated test suite verifying channel dimensions, matrix orthogonality, path-loss scaling, and LS estimation:
-```bash
-python -m tests.test_phase1
-```
-
-### 2. Classical AO Baselines (Phase 2)
-Export synthetic channels and run the classical Alternating Optimization algorithm in MATLAB:
-```bash
-# Export test instances
-python -m matlab.export_channels
-
-# In MATLAB:
-# run('matlab/run_phase2.m')
-```
-
-### 3. Deep Beamforming Pipeline (Phase 3)
-Verify neural network modules and test forward inference:
-```bash
-python -m tests.test_deep_beamforming
-```
-
-To retrain `DeepBeamformingNet` from scratch:
-```bash
-python -m gnn.train_beamforming
-```
-
-### 4. Full 500-Instance Independent Monte Carlo Evaluation
-To reproduce the 500-realization independent verification study:
+To reproduce the core experimental findings reported in the paper:
 
 ```bash
-# Step 1: Generate the independent 500-instance dataset (seeds 100000-100499)
-python -m results.generate_independent_500_data
+# 1. Run confirmatory out-of-sample validation on 500 virgin channel realizations
+python -m results.run_confirmatory_validation
 
-# Step 2: Run MATLAB AO optimization across batches (or via single runner)
-matlab -batch "addpath('matlab'); run_eval_range(1, 125, 1)"
-matlab -batch "addpath('matlab'); run_eval_range(126, 250, 2)"
-matlab -batch "addpath('matlab'); run_eval_range(251, 375, 3)"
-matlab -batch "addpath('matlab'); run_eval_range(376, 500, 4)"
-
-# Step 3: Compute paired statistical tests, summary tables, and publication plots
-python -m results.process_independent_500_results
-```
-
-All plots will be updated in the `results/` folder:
-- `results/fig_phase3_sumrate_vs_snr.png`
-- `results/fig_phase3_gain_vs_snr.png`
-- `results/fig_phase3_independent_cdf.png`
-- `results/fig_phase3_runtime_comparison.png`
-
----
-
-## Review-III Research Extensions (Completed)
-
-### 1. Phase 5 — 1-bit & 2-bit Quantization-Aware Beamforming (Task 1)
-Addresses hardware non-idealities by constraining IRS phase shifts to discrete phase alphabets:
-* **1-bit IRS:** $\{+1, -1\}$ (phase choices $\{0, \pi\}$).
-* **2-bit IRS:** $\{+1, +j, -1, -j\}$ (phase choices $\{0, \pi/2, \pi, 3\pi/2\}$).
-* **Quantization-Aware Training (QAT):** Implemented via a differentiable Straight-Through Estimator (STE) in `gnn/quantization.py`.
-* **Results (500 Held-Out Realizations, Seeds 200,000–200,499):**
-  - **Continuous Baseline:** **21.39 bps/Hz**
-  - **2-bit QAT:** **21.28 bps/Hz** (Retains **99.5%** of continuous performance, with only a $-0.11\text{ bps/Hz}$ degradation).
-  - **2-bit PTQ:** **21.16 bps/Hz** (QAT recovers $+0.12\text{ bps/Hz}$ over post-training quantization).
-  - **1-bit QAT:** **20.46 bps/Hz** (Retains **95.6%** of continuous performance with binary phase shifters).
-  - **1-bit PTQ:** **20.45 bps/Hz**
-  - **Inference Latency:** $\approx 1.94\text{--}2.05\text{ ms}$ on CPU.
-
-Reproduce:
-```bash
-python -m gnn.train_quantization --bits 1 --epochs 35
-python -m gnn.train_quantization --bits 2 --epochs 35
+# 2. Evaluate 1-bit and 2-bit discrete phase quantization (Task 1)
 python -m results.evaluate_phase5_quantization
-```
 
-### 2. Robustness Across Varied Fading Environments (Task 2)
-Evaluated across 5 physical propagation regimes:
-* Default ($K_{\text{rice}}=10, \alpha=2.2$): Zero-Shot = **21.70 bps/Hz** | Retrained = **21.88 bps/Hz**
-* Weak LOS ($K_{\text{rice}}=2.0, \alpha=2.2$): Zero-Shot = **20.58 bps/Hz** | Retrained = 17.81 bps/Hz
-* Pure Rayleigh ($K_{\text{rice}}=0.0$, complete LOS blockage): Zero-Shot = **17.22 bps/Hz** (vs 1.87 bps/Hz baseline)
-* Strong LOS ($K_{\text{rice}}=20.0, \alpha=2.0$): Zero-Shot = **23.11 bps/Hz** | Retrained = **23.59 bps/Hz**
-* High Path Loss ($\alpha=2.8$): Zero-Shot = **17.00 bps/Hz** | Retrained = **17.21 bps/Hz**
-* **Finding:** Zero-shot transfer delivers **17.00 to 23.11 bps/Hz**, outperforming the baseline by 8× to 11× without retraining.
-
-Reproduce:
-```bash
+# 3. Evaluate channel robustness across 5 fading distributions (Task 2)
 python -m gnn.train_and_eval_robustness
-```
 
-### 3. Dimension Generalization Across N, M, K (Task 3)
-* **IRS Elements Scaling ($M \in \{32, 64, 128\}$):** Permutation-equivariant ElementBlocks allow zero-shot transfer across surface dimensions ($M=32$: 19.36 bps/Hz, $M=64$: 21.46 bps/Hz, $M=128$: 23.87 bps/Hz), matching retrained performance.
-* **BS Antenna Scaling ($N \in \{4, 8, 16\}$):** Precoders scale from 21.34 bps/Hz ($N=4$, 5.33 bps/Hz/ant) to 22.37 bps/Hz ($N=8$, 2.80 bps/Hz/ant) and 22.30 bps/Hz ($N=16$, 1.39 bps/Hz/ant).
-* **User Load Scaling ($K \in \{2, 4, 8\}$):** Total sum-rate remains constant around $\approx 21.8\text{--}22.0\text{ bps/Hz}$ under total power constraint $P_{\max}=10\text{ W}$, with per-user spectral efficiency dividing equitably ($10.95 \to 5.50 \to 2.72\text{ bps/Hz/user}$).
-
-Reproduce:
-```bash
+# 4. Evaluate dimension generalization across M, N, K (Task 3)
 python -m gnn.train_and_eval_generalization
-```
 
-### 4. Controlled Noise-Floor Input Feature Ablation (Task 4)
-* **Noise-Aware Model:** **21.39 bps/Hz**
-* **Ablated Model (Noise Feature Removed):** **21.42 bps/Hz**
-* **Net Difference:** $-0.03\text{ bps/Hz}$ ($-0.14\%$), $p_{\text{paired-}t} = 0.5818$, Wilcoxon $p = 0.7446$, 95% CI = $[-0.13, +0.07]\text{ bps/Hz}$.
-* **Rigorous Conclusion:** Statistically indistinguishable. $\hat{C}_{\text{LS}}$ already implicitly carries noise variance through estimation residuals, rendering an external scalar noise-floor input redundant.
-
-Reproduce:
-```bash
+# 5. Evaluate noise-floor feature ablation (Task 4)
 python -m gnn.train_and_eval_noise_ablation
-```
 
----
+# 6. Run reproducible computational latency profiling
+python -m results.benchmark_runtime
 
-### 5. High-Resolution 15-Point Pilot Noise-Floor Sweep (Fixed Data Noise)
-* **Experiment Protocol:** 15 pilot estimation noise levels from -100.0 dBm to -60.0 dBm ($N=100$ per tier, 1,500 total evaluations) under fixed data-channel noise ($\sigma_{\text{data}}^2 \approx -85\text{ dBm}$) to isolate channel-estimation degradation from data detection SNR.
-* **Transition Region & Near-Equality Point:** Statistical near-equality between Deep ML and Matched Random RZF occurs at **-92.5 dBm**, where ML achieves $22.64 \pm 2.77$ bps/Hz vs. Matched RZF $22.40 \pm 8.49$ bps/Hz ($+0.235$ bps/Hz diff, $p = 0.765$, 52% wins, statistically indistinguishable). The regime transition spans the interval between $-95.0$ and $-90.0$ dBm rather than a knife-edge threshold.
-* **Severe Pilot Contamination Limit:** Under heavy pilot noise at -60.0 dBm (with data noise at -85 dBm), classical RZF matrix inversion degrades to $2.70 \pm 1.31$ bps/Hz due to noise inversion, while Deep ML preserves $17.42 \pm 5.49$ bps/Hz (**+14.73 bps/Hz gain**, 100% win rate, $p = 6.55 \times 10^{-50}$).
-* **Quantization Robustness:** 2-bit QAT maintains $\ge 92.6\%$ ($16.13$ bps/Hz at -60 dBm) and 1-bit QAT maintains $\ge 91.4\%$ ($15.93$ bps/Hz at -60 dBm) of continuous sum-rate.
-
-Reproduce:
-```bash
+# 7. Run expanded 15-point pilot noise sweep (1,500 evaluations)
 python -m results.run_noise_floor_expansion
 ```
+
+For complete instructions, dataset generation scripts, and MATLAB CVX baseline details, see [`PROJECT_DOCUMENTATION.md`](PROJECT_DOCUMENTATION.md).
 
 ---
 
 ## Citation & Contact
 
-If you utilize this framework, codebase, or results in your research, please cite:
+If you utilize this framework or results in your research, please cite:
 
 ```bibtex
-@misc{irs_adaptive_beamforming_2026,
-  author = {Dhruv Rathi},
-  title = {Noise-Aware Adaptive Beamforming for IRS-Assisted Wireless Communications},
-  year = {2026},
-  publisher = {GitHub},
-  howpublished = {\url{https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming}}
+@article{rathi2026noiseresilient,
+  author    = {Dhruv Rathi},
+  title     = {Noise-Resilient Intelligent Reflecting Surface Beamforming Under High Channel Estimation Error},
+  journal   = {IEEE Wireless Communications Letters},
+  year      = {2026},
+  note      = {Submitted for Review; Code available at \url{https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming}}
 }
 ```
 
-For questions or contributions, please open an issue or pull request at [https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming](https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming).
+For inquiries or issues, please open an issue or pull request at [https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming](https://github.com/dhruv-rathi-tech/irs-adaptive-beamforming).

@@ -5,7 +5,14 @@
 - **Pilot Noise-Floor Grid (15 values):** `[-100.0, -97.5, -95.0, -92.5, -90.0, -87.5, -85.0, -82.5, -80.0, -77.5, -75.0, -72.5, -70.0, -65.0, -60.0]` dBm.
   - Applied during multi-phase Least-Squares cascaded channel estimation (`multi_phase_pilot_estimate_C`).
 - **Fixed Data-Channel Noise:** Held constant at $\sigma_{\mathrm{data}}^2 = 3.16 \times 10^{-12}\text{ W} \approx -85.0\text{ dBm}$ during the true-channel achievable sum-rate evaluation across all methods. This cleanly isolates the impact of pilot channel-estimation error from data detection SNR.
-- **Realizations:** 100 trials per pilot noise floor = 1,500 total evaluations.
+- **Training Support vs. Evaluation Range:**
+  - Model Training Range: $P_{n,\text{pilot}}^{\text{dBm}} \in [-100.0, -70.0]\text{ dBm}$ (input feature $\tilde{\sigma}_{\text{pilot}} = (P_{n,\text{pilot}}^{\text{dBm}} + 85.0)/15.0 \in [-1.0, +1.0]$).
+  - Primary Evaluation (Phase 3): $\{-100, -90, -85, -80, -70\}\text{ dBm}$ (within training support).
+  - Expanded Sweep Range: $[-100.0, -60.0]\text{ dBm}$ (input feature $\tilde{\sigma}_{\text{pilot}} \in [-1.0, +1.67]$).
+  - Tiers $-65.0\text{ dBm}$ ($\tilde{\sigma} = +1.33$) and $-60.0\text{ dBm}$ ($\tilde{\sigma} = +1.67$) test out-of-distribution extrapolation beyond the training range.
+- **Statistical Design & Realizations:** 1,500 total evaluations across 15 pilot-noise tiers over 100 shared channel geometries (not 1,500 independent channel geometries).
+  - **Pairing Structure:** Within-tier method comparisons are strictly paired (identical channel geometry, identical pilot-noise realization, identical data noise).
+  - **Cross-Tier Structure:** Cross-tier evaluations reflect repeated measures on the 100 shared channel geometries across varying pilot-noise levels.
 - **Random Seed Hierarchy & Provenance:**
   - **Channel-Geometry Seeds:** Seeds 600,000 to 600,099 (`BASE_SEED + trial`) generate 100 distinct physical channel geometries $(G_i, H_i)$ that are shared across all 15 pilot noise levels.
   - **Pilot-Noise Seeds:** Seeds 600,000 to 601,499 (`BASE_SEED + tier_idx * 100 + trial`) generate independent pilot noise realizations across tiers and trials (1,500 distinct pseudo-random draws).
@@ -44,7 +51,7 @@
 2. **Severe Pilot Contamination Regime ($-90$ to $-60$ dBm):**
    - Across all pilot noise floors $\ge -90$ dBm, Deep ML decisively outperforms Matched Random RZF under the fixed $-85$ dBm data-channel condition.
    - As pilot noise increases, estimation errors corrupt the cascaded matrix $\hat{C}_{\text{LS}}$. Classical RZF, which requires inverting this noisy matrix, suffers from catastrophic noise amplification and collapses to $2.70 \pm 1.31$ bps/Hz at $-60$ dBm pilot noise.
-   - In contrast, Deep ML avoids direct matrix inversion of estimation noise through learned regularized mappings, preserving $17.42 \pm 5.49$ bps/Hz ($+14.73$ bps/Hz net gain, 100/100 wins, paired $t = 28.79, df = 99, p = 6.55 \times 10^{-50}$).
+   - In contrast, Deep ML preserves $17.42 \pm 5.49$ bps/Hz ($+14.73$ bps/Hz net gain, 100/100 wins, paired $t = 28.79, df = 99, p = 6.55 \times 10^{-50}$). While learned adaptive regularization dampening noise-corrupted directions during $K \times K$ matrix inversion is a plausible mechanism, its causal role in out-of-distribution generalization beyond the training range ($[-100, -70]$ dBm) remains a working hypothesis.
 3. **Quantization Resilience:**
    - 2-bit QAT preserves $\ge 92.6\%$ of continuous performance even under $-60$ dBm pilot noise ($16.13$ vs $17.42$ bps/Hz) and $\ge 96.3\%$ across $-100$ to $-70$ dBm.
    - 1-bit QAT preserves $\ge 91.4\%$ at $-60$ dBm ($15.93$ vs $17.42$ bps/Hz) and $\ge 94.0\%$ across $-100$ to $-70$ dBm.
